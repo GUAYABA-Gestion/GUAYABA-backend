@@ -93,6 +93,22 @@ CREATE TABLE guayaba.Espacio (
     FOREIGN KEY (id_edificio) REFERENCES guayaba.Edificio(id_edificio)
 );
 
+-- Tabla Facultad
+CREATE TABLE guayaba.Facultad (
+    id_facultad SERIAL PRIMARY KEY, 
+    nombre TEXT NOT NULL UNIQUE
+);
+
+-- Tabla Programa
+CREATE TABLE guayaba.Programa (
+    id_programa SERIAL PRIMARY KEY, 
+    id_facultad INTEGER NOT NULL,   
+    nombre VARCHAR(50),         
+    nivel VARCHAR(20),
+    FOREIGN KEY (id_facultad) REFERENCES guayaba.Facultad(id_facultad)
+);
+
+
 -- Índice para búsqueda por estado de espacio
 CREATE INDEX idx_espacio_estado ON guayaba.Espacio(estado);
 
@@ -100,14 +116,19 @@ CREATE INDEX idx_espacio_estado ON guayaba.Espacio(estado);
 CREATE TABLE guayaba.Evento (
     id_evento SERIAL PRIMARY KEY,
     id_espacio INTEGER NOT NULL,
+    tipo VARCHAR(20),
+    nombre VARCHAR(255), 
     descripción VARCHAR(255),
-    tipo_contrato VARCHAR(20),
+    id_facultad INTEGER NOT NULL,
+    id_programa INTEGER NOT NULL,
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE NOT NULL,
     hora_inicio TIME NOT NULL,
     hora_fin TIME NOT NULL,
     días VARCHAR(7),
-    FOREIGN KEY (id_espacio) REFERENCES guayaba.Espacio(id_espacio)
+    FOREIGN KEY (id_espacio) REFERENCES guayaba.Espacio(id_espacio),
+    FOREIGN KEY (id_facultad) REFERENCES guayaba.Facultad(id_facultad), 
+    FOREIGN KEY (id_programa) REFERENCES guayaba.Programa(id_programa)  
 );
 
 -- Tabla Mantenimiento
@@ -115,6 +136,7 @@ CREATE TABLE guayaba.Mantenimiento (
     id SERIAL PRIMARY KEY,
     id_espacio INTEGER NOT NULL,
     id_encargado INTEGER NOT NULL,
+    tipo_contrato VARCHAR(20),
     estado VARCHAR(20),
     necesidad VARCHAR(50),
     prioridad VARCHAR(20),
