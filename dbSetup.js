@@ -27,6 +27,7 @@ CREATE TABLE guayaba.Municipio (
     FOREIGN KEY (departamento_id) REFERENCES guayaba.Departamento(id)
 );
 
+
 -- Índice para búsqueda por nombre de municipio
 CREATE INDEX idx_municipio_nombre ON guayaba.Municipio(nombre);
 
@@ -44,10 +45,8 @@ CREATE TABLE guayaba.Persona (
     id_usuario INTEGER,
     nombre VARCHAR(150) NOT NULL,
     correo VARCHAR(100) NOT NULL UNIQUE,
-    id_sede INTEGER NOT NULL,
     telefono VARCHAR(15),
-    FOREIGN KEY (id_usuario) REFERENCES guayaba.Usuario(id_usuario),
-    FOREIGN KEY (id_sede) REFERENCES guayaba.Sede(id_sede)
+    FOREIGN KEY (id_usuario) REFERENCES guayaba.Usuario(id_usuario)
 );
 
 -- Índices para Persona
@@ -63,6 +62,11 @@ CREATE TABLE guayaba.Sede (
     FOREIGN KEY (municipio) REFERENCES guayaba.Municipio(id),
     FOREIGN KEY (coordinador) REFERENCES guayaba.Persona(id_persona)
 );
+
+ALTER TABLE guayaba.Persona
+ADD COLUMN id_sede INTEGER,
+ADD CONSTRAINT fk_persona_sede
+FOREIGN KEY (id_sede) REFERENCES guayaba.Sede(id_sede);
 
 -- Tabla Edificio
 CREATE TABLE guayaba.Edificio (
