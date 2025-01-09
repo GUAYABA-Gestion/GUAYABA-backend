@@ -44,8 +44,10 @@ CREATE TABLE guayaba.Persona (
     id_usuario INTEGER,
     nombre VARCHAR(150) NOT NULL,
     correo VARCHAR(100) NOT NULL UNIQUE,
+    id_sede INTEGER NOT NULL,
     telefono VARCHAR(15),
-    FOREIGN KEY (id_usuario) REFERENCES guayaba.Usuario(id_usuario)
+    FOREIGN KEY (id_usuario) REFERENCES guayaba.Usuario(id_usuario),
+    FOREIGN KEY (id_sede) REFERENCES guayaba.Sede(id_sede)
 );
 
 -- Índices para Persona
@@ -108,7 +110,6 @@ CREATE TABLE guayaba.Programa (
     FOREIGN KEY (id_facultad) REFERENCES guayaba.Facultad(id_facultad)
 );
 
-
 -- Índice para búsqueda por estado de espacio
 CREATE INDEX idx_espacio_estado ON guayaba.Espacio(estado);
 
@@ -137,10 +138,11 @@ CREATE TABLE guayaba.Mantenimiento (
     id_espacio INTEGER NOT NULL,
     id_encargado INTEGER NOT NULL,
     tipo_contrato VARCHAR(20),
+    tipo VARCHAR(20),
     estado VARCHAR(20),
     necesidad VARCHAR(50),
     prioridad VARCHAR(20),
-    tipo VARCHAR(50),
+    detalle VARCHAR(50),
     fecha_ini TIMESTAMP NOT NULL,
     fecha_fin TIMESTAMP,
     observación TEXT,
