@@ -1,0 +1,16 @@
+BEGIN;
+
+INSERT INTO guayaba.Persona ("id_usuario", "nombre", "correo", "telefono", "detalles") 
+VALUES 
+    (NULL, 'Jordan Eiler', 'jordan.eiler@gmail.com', '3169119222', 'Coordinador Sede Bogotá'),
+    (NULL, 'Obidiah Lindblom', 'obidiah.lindblom@terra.com.br', '3151584193', 'Coordinador Sede Cali'),
+    (NULL, 'Jehu Menico', 'jehu.menico@yahoo.com', '3154826095', 'Coordinador Sede Pasto'),
+    (NULL, 'Lotti Curtain', 'lotti.curtain@orange.fr', '3133420421', 'Coordinador Sede Puerto Colombia'),
+    (NULL, 'Dre Kimmons', 'dre.kimmons@hotmail.com', '3106908707', 'Coordinador Sede Sabaneta'),
+    (NULL, 'Karney Wehnerr', 'karney.wehnerr@yahoo.com', '3159421548', 'Administrador Sede Bogotá'),
+    (NULL, 'Billy Brodnecke', 'billy.brodnecke@yahoo.com', '3128361876', 'Personal de Mantenimiento, Sede Cali'),
+    (NULL, 'Aeriela Lukins', 'aeriela.lukins@hotmail.com', '3148943023', 'Administrador, Sede Pasto'),
+    (NULL, 'Andrew Tuvey', 'andrew.tuvey@yahoo.com', '3167325497', 'Administrador Sede Puerto Colombia'),
+    (NULL, 'Camilla O''Deegan', 'camilla.odeegan@yahoo.com', '3136777734', 'Personal de Mantenimiento, Sede Sabaneta');
+
+COMMIT;

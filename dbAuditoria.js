@@ -10,16 +10,32 @@ api.initializeDB();
 const query = `
 BEGIN;
 
+-- Eliminar triggers si ya existen
+DROP TRIGGER IF EXISTS trg_auditoria_usuario ON guayaba.Usuario;
+DROP TRIGGER IF EXISTS trg_auditoria_persona ON guayaba.Persona;
+DROP TRIGGER IF EXISTS trg_auditoria_sede ON guayaba.Sede;
+DROP TRIGGER IF EXISTS trg_auditoria_edificio ON guayaba.Edificio;
+DROP TRIGGER IF EXISTS trg_auditoria_espacio ON guayaba.Espacio;
+DROP TRIGGER IF EXISTS trg_auditoria_evento ON guayaba.Evento;
+DROP TRIGGER IF EXISTS trg_auditoria_mantenimiento ON guayaba.Mantenimiento;
+
+-- Eliminar tabla de auditoría si ya existe
+DROP TABLE IF EXISTS guayaba.Auditoria CASCADE;
+
 -- Crear tabla de auditoría
 CREATE TABLE guayaba.Auditoria (
     id_auditoria SERIAL PRIMARY KEY,
     tabla_afectada VARCHAR(100) NOT NULL,
-    operacion VARCHAR(10) NOT NULL CHECK (operacion IN ('CREATE', 'READ', 'UPDATE', 'DELETE')),
+    operacion VARCHAR(10) NOT NULL CHECK (operacion IN ('INSERT', 'UPDATE', 'DELETE')),
     fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     datos_anteriores JSONB,
     datos_nuevos JSONB
 );
 
+-- Eliminar función de auditoría si ya existe
+DROP FUNCTION IF EXISTS guayaba.fn_auditoria();
+
+-- Crear función de auditoría
 CREATE OR REPLACE FUNCTION guayaba.fn_auditoria()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -41,6 +57,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Crear triggers
 CREATE TRIGGER trg_auditoria_usuario
 AFTER INSERT OR UPDATE OR DELETE
 ON guayaba.Usuario
@@ -83,8 +100,11 @@ ON guayaba.Mantenimiento
 FOR EACH ROW
 EXECUTE FUNCTION guayaba.fn_auditoria();
 
-
 COMMIT;
+
 `;
+
+// const res = await api.query(query);
+// console.log(res);
 
 api.query(query);

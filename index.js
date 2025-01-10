@@ -14,7 +14,7 @@ app.use(helmet());
 app.use(express.json()); // Middleware para parsear JSON
 
 // Definir un puerto para nuestro servidor
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 
 // Ruta de prueba
 app.get('/', (req, res) => {
@@ -22,6 +22,10 @@ app.get('/', (req, res) => {
 });
 
 app.get('/ping', api.ping);
+
+app.get('/api/sedes', api.getSedes);
+app.post("/api/check-user", api.checkUser);
+app.post("/api/register", api.registerUser);
 
 // Iniciar el servidor
 app.listen(port, () => {

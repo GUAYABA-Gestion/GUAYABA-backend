@@ -15,18 +15,17 @@ BEGIN;
 
 -- Tabla Departamento
 CREATE TABLE guayaba.Departamento (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL
 );
 
 -- Tabla Municipio
 CREATE TABLE guayaba.Municipio (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     departamento_id INTEGER NOT NULL,
     FOREIGN KEY (departamento_id) REFERENCES guayaba.Departamento(id)
 );
-
 
 -- Índice para búsqueda por nombre de municipio
 CREATE INDEX idx_municipio_nombre ON guayaba.Municipio(nombre);
@@ -35,17 +34,17 @@ CREATE INDEX idx_municipio_nombre ON guayaba.Municipio(nombre);
 CREATE TABLE guayaba.Usuario (
     id_usuario SERIAL PRIMARY KEY,
     correo VARCHAR(100) NOT NULL UNIQUE,
-    contraseña VARCHAR(30) NOT NULL,
-    rol VARCHAR(20) NOT NULL
+    rol VARCHAR(50) NOT NULL
 );
 
--- Tabla Persona
+-- Tabla Persona 
 CREATE TABLE guayaba.Persona (
     id_persona SERIAL PRIMARY KEY,
     id_usuario INTEGER,
     nombre VARCHAR(150) NOT NULL,
-    correo VARCHAR(100) NOT NULL UNIQUE,
+    correo VARCHAR(100),
     telefono VARCHAR(15),
+    detalles VARCHAR(255),
     FOREIGN KEY (id_usuario) REFERENCES guayaba.Usuario(id_usuario)
 );
 
@@ -161,5 +160,8 @@ CREATE INDEX idx_mantenimiento_prioridad ON guayaba.Mantenimiento(prioridad);
 COMMIT;
 
 `;
+
+// const res = await api.query(query);
+// console.log(res);
 
 api.query(query);
