@@ -9,7 +9,7 @@ api.initializeDB();
 const query = `
 BEGIN;
 
-SELECT * FROM guayaba.Sede
+TRUNCATE TABLE guayaba.Usuario RESTART IDENTITY CASCADE;
 COMMIT;
 
 `;

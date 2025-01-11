@@ -26,6 +26,10 @@ app.get('/ping', api.ping);
 app.get('/api/sedes', api.getSedes);
 app.post("/api/check-user", api.checkUser);
 app.post("/api/register", api.registerUser);
+app.get('/api/users', api.getUsers);
+app.get("/api/personas", api.getPersonas);
+app.get("/api/account", api.getAccountInfo);
+app.delete("/api/delete-account", api.deleteAccount);
 
 // Iniciar el servidor
 app.listen(port, () => {
