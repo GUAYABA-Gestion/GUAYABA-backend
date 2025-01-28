@@ -7,6 +7,7 @@ let pool; // Variable para guardar la conexión
 
 // Método para inicializar la conexión
 const initializeDB = () => {
+  console.log(process.env.DATABASE_URL)
   pool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false },
@@ -44,6 +45,31 @@ const getSedes = async (req, res) => {
     res.status(500).json({ error: "Error al obtener las sedes" });
   }
 };
+
+const getEdificios = async (req, res) => {
+  const { id_sede } = req.query;
+
+  if (!id_sede) {
+    return res.status(400).json({ error: "El parámetro id_edificio es requerido." });
+  }
+
+  try {
+    const query = `
+      SELECT id_edificio, nombre, direccion, categoria, propiedad, area_terreno, area_construida, cert_uso_suelo
+      FROM ${TABLES.EDIFICIO}
+      INNER JOIN ${TABLES.SEDE} ON ${TABLES.EDIFICIO}.id_sede = ${TABLES.SEDE}.id_sede
+      WHERE ${TABLES.EDIFICIO}.id_sede = $1;
+    `;
+
+    const result = await pool.query(query, [id_sede]);
+
+    res.json(result);
+  } catch (error) {
+    console.error("Error al obtener los edificios:", error.message);
+    res.status(500).json({ error: "Error al obtener los edificios." });
+  }
+  
+}
 
 const checkUser = async (req, res) => {
   const { email } = req.body;
@@ -212,12 +238,28 @@ const deleteAccount = async (req, res) => {
   }
 };
 
+const getAuditoria = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT tabla_afectada, operacion, fecha_hora, datos_anteriores, datos_nuevos   
+      FROM ${TABLES.AUDITORIA} 
+      ORDER BY fecha_hora desc;
+    `)
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error al obtener historial:", error.message);
+    res.status(500).json({ error: "Error al obtener el historial" });
+  }
+}
+
 // Constantes para el esquema y las tablas
 const SCHEMA = "guayaba";
 const TABLES = {
   SEDE: `${SCHEMA}.Sede`,
+  EDIFICIO: `${SCHEMA}.Edificio`,
   USUARIO: `${SCHEMA}.Usuario`,
   PERSONA: `${SCHEMA}.Persona`,
+  AUDITORIA: `${SCHEMA}.Auditoria`,
   
 };
 
@@ -226,10 +268,12 @@ export {
   query,
   ping,
   getSedes,
+  getEdificios,
   checkUser,
   registerUser,
   getUsers,
   getPersonas,
   getAccountInfo,
   deleteAccount,
+  getAuditoria
 };

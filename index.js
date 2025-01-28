@@ -24,11 +24,13 @@ app.get('/', (req, res) => {
 app.get('/ping', api.ping);
 
 app.get('/api/sedes', api.getSedes);
+app.get('/api/edificios', api.getEdificios);
 app.post("/api/check-user", api.checkUser);
 app.post("/api/register", api.registerUser);
 app.get('/api/users', api.getUsers);
 app.get("/api/personas", api.getPersonas);
 app.get("/api/account", api.getAccountInfo);
+app.get("/api/audit", api.getAuditoria);
 app.delete("/api/delete-account", api.deleteAccount);
 
 // Iniciar el servidor
