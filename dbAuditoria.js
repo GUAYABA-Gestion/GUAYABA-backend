@@ -11,7 +11,6 @@ const query = `
 BEGIN;
 
 -- Eliminar triggers si ya existen
-DROP TRIGGER IF EXISTS trg_auditoria_usuario ON guayaba.Usuario;
 DROP TRIGGER IF EXISTS trg_auditoria_persona ON guayaba.Persona;
 DROP TRIGGER IF EXISTS trg_auditoria_sede ON guayaba.Sede;
 DROP TRIGGER IF EXISTS trg_auditoria_edificio ON guayaba.Edificio;
@@ -58,11 +57,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Crear triggers
-CREATE TRIGGER trg_auditoria_usuario
-AFTER INSERT OR UPDATE OR DELETE
-ON guayaba.Usuario
-FOR EACH ROW
-EXECUTE FUNCTION guayaba.fn_auditoria();
 
 CREATE TRIGGER trg_auditoria_persona
 AFTER INSERT OR UPDATE OR DELETE

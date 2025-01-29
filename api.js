@@ -80,7 +80,7 @@ const checkUser = async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT * FROM ${TABLES.USUARIO} WHERE correo = $1`,
+      `SELECT * FROM ${TABLES.PERSONA} WHERE correo = $1`,
       [email]
     );
 
@@ -105,7 +105,7 @@ const registerUser = async (req, res) => {
   try {
     // Verificar si el usuario ya existe en la tabla Usuario
     const checkResult = await pool.query(
-      `SELECT * FROM ${TABLES.USUARIO} WHERE correo = $1`,
+      `SELECT * FROM ${TABLES.PERSONA} WHERE correo = $1`,
       [correo]
     );
 
@@ -114,28 +114,15 @@ const registerUser = async (req, res) => {
       return res.json({ message: "El usuario ya está registrado.", registered: true });
     }
 
-    // Insertar en la tabla Usuario
-    const rol = `Usuario_${sede_id}`;
+    // Insertar en la tabla persona
+    const rol = `Usuario`;
     const usuarioResult = await pool.query(
-      `INSERT INTO ${TABLES.USUARIO} (correo, rol) VALUES ($1, $2) RETURNING id_usuario`,
-      [correo, rol]
+      `INSERT INTO ${TABLES.PERSONA} (correo, rol, nombre, id_sede, telefono, detalles) VALUES ($1, $2, $3, $4, NULL, NULL) RETURNING id_persona`,
+      [correo, rol, nombre, sede_id]
     );
 
     if (usuarioResult.rowCount === 0) {
       throw new Error("No se pudo crear el usuario.");
-    }
-
-    const id_usuario = usuarioResult.rows[0].id_usuario;
-
-    // Insertar en la tabla Persona
-    const personaResult = await pool.query(
-      `INSERT INTO ${TABLES.PERSONA} (id_usuario, nombre, correo, id_sede, telefono, detalles) 
-       VALUES ($1, $2, $3, $4, NULL, NULL) RETURNING id_persona`,
-      [id_usuario, nombre, correo, sede_id]
-    );
-
-    if (personaResult.rowCount === 0) {
-      throw new Error("No se pudo crear la persona.");
     }
 
     return res.json({ message: "Usuario registrado con éxito.", registered: true });
@@ -145,24 +132,10 @@ const registerUser = async (req, res) => {
   }
 };
 
-const getUsers = async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT id_usuario, correo, rol  
-      FROM ${TABLES.USUARIO} 
-      ORDER BY id_usuario;
-    `);
-    res.json(result.rows); // Devuelve un JSON con los usuarios
-  } catch (error) {
-    console.error("Error al obtener usuarios:", error.message);
-    res.status(500).json({ error: "Error al obtener usuarios." });
-  }
-};
-
 const getPersonas = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id_persona, id_usuario, id_sede, nombre, correo, telefono, detalles FROM ${TABLES.PERSONA}`
+      `SELECT id_persona, id_sede, correo, nombre, telefono, rol,detalles FROM ${TABLES.PERSONA}`
     );
     res.json(result.rows);
   } catch (error) {
@@ -172,30 +145,28 @@ const getPersonas = async (req, res) => {
 };
 
 const getAccountInfo = async (req, res) => {
-  const { id_usuario } = req.query; // Obtenemos el id_usuario de los parámetros de la consulta
+  const { id_persona } = req.query; // Obtenemos el id_persona de los parámetros de la consulta
 
-  if (!id_usuario) {
-    return res.status(400).json({ error: "El parámetro id_usuario es requerido." });
+  if (!id_persona) {
+    return res.status(400).json({ error: "El parámetro id_persona es requerido." });
   }
 
   try {
     // Realizamos el JOIN entre USUARIO y PERSONA
     const query = `
       SELECT 
-        u.id_usuario, 
-        u.correo AS usuario_correo, 
-        u.rol, 
-        p.id_persona, 
-        p.nombre, 
-        p.correo AS persona_correo, 
-        p.telefono, 
-        p.detalles
-      FROM ${TABLES.USUARIO} u
-      INNER JOIN ${TABLES.PERSONA} p ON u.id_usuario = p.id_usuario
-      WHERE u.id_usuario = $1;
+        id_persona, 
+        correo AS usuario_correo, 
+        rol, 
+        id_persona, 
+        nombre, 
+        telefono, 
+        detalles
+      FROM ${TABLES.PERSONA} 
+      WHERE id_persona = $1;
     `;
 
-    const result = await pool.query(query, [id_usuario]);
+    const result = await pool.query(query, [id_persona]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Usuario no encontrado." });
@@ -211,24 +182,19 @@ const getAccountInfo = async (req, res) => {
 };
 
 const deleteAccount = async (req, res) => {
-  const { id_usuario } = req.body; // Obtenemos el id_usuario desde el cuerpo de la solicitud
+  const { id_persona } = req.body; // Obtenemos el id_usuario desde el cuerpo de la solicitud
 
-  if (!id_usuario) {
-    return res.status(400).json({ error: "El parámetro id_usuario es requerido." });
+  if (!id_persona) {
+    return res.status(400).json({ error: "El parámetro id_persona es requerido." });
   }
 
   try {
     // Primero eliminamos la persona asociada
     const deletePersonaQuery = `
-      DELETE FROM ${TABLES.PERSONA} WHERE id_usuario = $1;
+      DELETE FROM ${TABLES.PERSONA} WHERE id_persona = $1;
     `;
-    await pool.query(deletePersonaQuery, [id_usuario]);
+    await pool.query(deletePersonaQuery, [id_persona]);
 
-    // Luego eliminamos al usuario de la tabla de usuarios
-    const deleteUsuarioQuery = `
-      DELETE FROM ${TABLES.USUARIO} WHERE id_usuario = $1;
-    `;
-    await pool.query(deleteUsuarioQuery, [id_usuario]);
 
     // Si todo salió bien, respondemos con un mensaje de éxito
     res.status(200).json({ message: "Cuenta eliminada exitosamente." });
@@ -271,7 +237,6 @@ export {
   getEdificios,
   checkUser,
   registerUser,
-  getUsers,
   getPersonas,
   getAccountInfo,
   deleteAccount,
