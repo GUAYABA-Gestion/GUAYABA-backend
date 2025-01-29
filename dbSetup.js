@@ -30,22 +30,14 @@ CREATE TABLE guayaba.Municipio (
 -- Índice para búsqueda por nombre de municipio
 CREATE INDEX idx_municipio_nombre ON guayaba.Municipio(nombre);
 
--- Tabla Usuario
-CREATE TABLE guayaba.Usuario (
-    id_usuario SERIAL PRIMARY KEY,
-    correo VARCHAR(100) NOT NULL UNIQUE,
-    rol VARCHAR(50) NOT NULL
-);
-
 -- Tabla Persona 
 CREATE TABLE guayaba.Persona (
     id_persona SERIAL PRIMARY KEY,
-    id_usuario INTEGER,
+    correo VARCHAR(100) NOT NULL UNIQUE,
     nombre VARCHAR(150) NOT NULL,
-    correo VARCHAR(100),
     telefono VARCHAR(15),
-    detalles VARCHAR(255),
-    FOREIGN KEY (id_usuario) REFERENCES guayaba.Usuario(id_usuario)
+    rol VARCHAR(50) NOT NULL,
+    detalles VARCHAR(255)
 );
 
 -- Índices para Persona
