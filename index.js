@@ -23,10 +23,14 @@ app.get('/', (req, res) => {
 
 app.get('/ping', api.ping);
 
+app.post('/api/create-sede', api.createSede);
 app.get('/api/sedes', api.getSedes);
+app.post('/api/update-sede', api.updateSede);
+app.post('/api/create-edificio', api.createEdificio);
 app.get('/api/edificios', api.getEdificios);
 app.post("/api/check-user", api.checkUser);
 app.post("/api/register", api.registerUser);
+app.post("api/update-user", api.updateUser);
 app.get("/api/personas", api.getPersonas);
 app.get("/api/account", api.getAccountInfo);
 app.get("/api/audit", api.getAuditoria);
