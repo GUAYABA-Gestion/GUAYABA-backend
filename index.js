@@ -1,42 +1,31 @@
 import express from 'express';
-import { config } from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
-import * as api from './api.js';
+import routes from "./routes/index.js"
 
-config();
-api.initializeDB();
-
-// Crear una nueva aplicación Express
 const app = express();
-app.use(cors());
+
+// Configuración de CORS
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',  // Desarrollo local
+    'https://guayaba-frontend.vercel.app/' // Producción
+  ],
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
 app.use(helmet());
-app.use(express.json()); // Middleware para parsear JSON
+app.use(express.json());
 
-// Definir un puerto para nuestro servidor
+app.get("/", (req, res) => res.send(`
+  <h1>Guayaba Backend</h1>
+  <p><a href="/api/ping">Ping database</a></p>
+`));
+
+app.use("/api", routes);
+
 const port = process.env.PORT || 4000;
-
-// Ruta de prueba
-app.get('/', (req, res) => {
-  res.send('¡Hola Mundo!');
-});
-
-app.get('/ping', api.ping);
-
-app.post('/api/create-sede', api.createSede);
-app.get('/api/sedes', api.getSedes);
-app.post('/api/update-sede', api.updateSede);
-app.post('/api/create-edificio', api.createEdificio);
-app.get('/api/edificios', api.getEdificios);
-app.post("/api/check-user", api.checkUser);
-app.post("/api/register", api.registerUser);
-app.post("api/update-user", api.updateUser);
-app.get("/api/personas", api.getPersonas);
-app.get("/api/account", api.getAccountInfo);
-app.get("/api/audit", api.getAuditoria);
-app.delete("/api/delete-account", api.deleteAccount);
-
-// Iniciar el servidor
-app.listen(port, () => {
-  console.log(`Servidor escuchando en http://localhost:${port}`);
-});
+app.listen(port, () => console.log(`Servidor en http://localhost:${port}`));

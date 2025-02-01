@@ -1,13 +1,6 @@
-// CORRER ESTO SOLO UNA VEZ, CON "node dbSetup.js" 
+import { query } from "../utils/dbUtils.js"; // Importar la función query
 
-import { config } from 'dotenv';
-import * as api from './api.js';
-
-config();
-
-api.initializeDB();
-
-const query = `
+const auditQuery = `
 BEGIN;
 
 -- Eliminar triggers si ya existen
@@ -98,7 +91,14 @@ COMMIT;
 
 `;
 
-// const res = await api.query(query);
-// console.log(res);
+const auditDB = async () => {
+  try {
+    console.log("Creando la tabla de auditoria...");
+    await query(auditQuery);
+    console.log("Tabla de auditoría creada correctamente.");
+  } catch (error) {
+    console.error("Error al inicializar crear la tabla de auditoría", error);
+  }
+};
 
-api.query(query);
+auditDB();

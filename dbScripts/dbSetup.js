@@ -1,12 +1,6 @@
-// CORRER ESTO SOLO UNA VEZ, CON "node dbSetup.js" 
-import { config } from 'dotenv';
-import * as api from './api.js';
+import { query } from "../utils/dbUtils.js"; // Importar la función query
 
-config();
-
-api.initializeDB();
-
-const query = `
+const setupQuery = `
 -- Crear esquema
 CREATE SCHEMA IF NOT EXISTS guayaba;
 
@@ -153,7 +147,14 @@ COMMIT;
 
 `;
 
-// const res = await api.query(query);
-// console.log(res);
+const initializeDB = async () => {
+  try {
+    console.log("Inicializando la base de datos...");
+    await query(setupQuery);
+    console.log("Base de datos inicializada correctamente.");
+  } catch (error) {
+    console.error("Error al inicializar la base de datos:", error);
+  }
+};
 
-api.query(query);
+initializeDB();
