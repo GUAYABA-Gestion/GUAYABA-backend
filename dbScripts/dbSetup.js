@@ -109,7 +109,6 @@ CREATE TABLE guayaba.Evento (
     tipo VARCHAR(20),
     nombre VARCHAR(255), 
     descripción VARCHAR(255),
-    id_facultad INTEGER NOT NULL,
     id_programa INTEGER NOT NULL,
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE NOT NULL,
@@ -117,7 +116,6 @@ CREATE TABLE guayaba.Evento (
     hora_fin TIME NOT NULL,
     días VARCHAR(7),
     FOREIGN KEY (id_espacio) REFERENCES guayaba.Espacio(id_espacio),
-    FOREIGN KEY (id_facultad) REFERENCES guayaba.Facultad(id_facultad), 
     FOREIGN KEY (id_programa) REFERENCES guayaba.Programa(id_programa)  
 );
 
