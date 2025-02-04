@@ -1,0 +1,15 @@
+BEGIN;
+
+INSERT INTO guayaba.edificio ("id_sede", "id_titular", "nombre", "dirección", "categoría", "propiedad", "area_terreno", "area_construida", "cert_uso_suelo") 
+VALUES
+( '1', '1', 'Voluptates fugiat', '13966 Vaughn Way', 'SEDE Y CAT', 'NO OPERACIONAL', '1504', '3277', '1'),
+( '4', '2', 'Mihi', '7156 Casteel Avenue', 'OTRO', 'ARRENDADO', '1847', '2826', '0'),
+( '5', '3', 'Tollatur error', '715 Carolina Court', 'SEDE', 'NO OPERACIONAL', '1536', '3035', '1'),
+( '3', '4', 'Vivendi', '2014 Love Avenue', 'SEDE Y CAT', 'ARRENDADO', '1223', '3215', '0'),
+( '5', '5', 'Contra quos', '2615 Vineyard Drive', 'OTRO', 'NO OPERACIONAL', '1710', '2360', '0'),
+( '5', '6', 'Malunt scribi', '4922 Markward Drive', 'PRINCIPAL', 'NO OPERACIONAL', '1151', '2021', '0'),
+( '3', '7', 'Triarius in', '9390 Irdell Avenue', 'PRINCIPAL', 'NO OPERACIONAL', '1208', '3036', '1'),
+( '2', '8', 'Esse censet', '14315 Mundelein Place', 'SEDE', 'ARRENDADO', '1194', '3051', '1'),
+( '5', '9', 'Crudeli', '2495 Deveaux Lane', 'PRINCIPAL', 'ARRENDADO', '1235', '3108', '1'),
+( '3', '5', 'Et', '10129 Santa Anna Lane', 'CAT', 'PROPIO', '1076', '2010', '1');
+COMMIT;

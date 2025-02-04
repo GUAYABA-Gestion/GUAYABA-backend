@@ -38,7 +38,8 @@ async function cargarDatos(nombreTabla, rutaQuery) {
     await cargarDatos("guayaba.Municipio", "./dataQueries/queryDepartMunicip.txt");
     await cargarDatos("guayaba.Persona", "./dataQueries/queryPersona.txt");
     await cargarDatos("guayaba.Sede", "./dataQueries/querySede.txt");
-    await cargarDatos("guayaba.Espacio", "./dataQueries/querySede.txt");
+    await cargarDatos("guayaba.Edificio", "./dataQueries/queryEdificio.txt")
+    await cargarDatos("guayaba.Espacio", "./dataQueries/queryEspacio.txt");
     await cargarDatos("guayaba.Mantenimiento", "./dataQueries/queryMantenimiento.txt");
 
 
