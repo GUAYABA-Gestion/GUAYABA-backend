@@ -5,10 +5,21 @@ import edificioRoutes from "./edificioRoutes.js"
 import auditRoutes from "./auditRoutes.js"
 import { pool } from "../db.js";
 
+import { generateTestJWT } from "../controllers/utilsController.js"; // Importa la función
+
+export const Test = {
+  generateTestToken: (req, res) => {
+    const token = generateTestJWT();
+    res.json({ token });
+  }
+};
+
 const router = Router();
 
 // Ruta raíz
 router.get("/", (req, res) => res.send("¡Hola Mundo!"));
+
+router.get("/generate-test-token", Test.generateTestToken);
 
 // Ruta /ping
 router.get("/ping", async (req, res) => {
