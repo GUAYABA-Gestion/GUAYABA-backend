@@ -1,6 +1,8 @@
 import { Router } from "express";
 import userRoutes from "./userRoutes.js";
 import sedeRoutes from "./sedeRoutes.js";
+import espacioRoutes from "./espacioRoutes.js";
+import mantenimientoRoutes from "./mantenimientoRoutes.js";
 import { pool } from "../db.js";
 
 const router = Router();
@@ -22,5 +24,7 @@ router.get("/ping", async (req, res) => {
 // Montar rutas específicas
 router.use("/user", userRoutes);
 router.use("/sedes", sedeRoutes);
-
+//WIP
+router.use("/espacio", espacioRoutes);
+router.use("/mantenimiento", mantenimientoRoutes);
 export default router;
