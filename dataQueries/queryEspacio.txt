@@ -1,0 +1,16 @@
+BEGIN;
+
+INSERT INTO guayaba.Espacio ("id_espacio", "id_edificio", "nombre", "estado", "clasificacion", "uso", "Tipo", "piso", "capacidad", "mediciónmt2", "Descripción") 
+VALUES 
+('1', '4', 'Tapirus terrestris', 'Funcionamiento Parcial', 'Portería', 'Área común', 'Consultorio', 'Noveno Piso', '12', '3007', 'Homines, tot sententiae; falli igitur possumus. Quam ob rem voluptas expetenda, fugiendus dolor sit. Sentiri haec putat, ut calere ignem, nivem.');
+('2', '11', 'Oxybelis fulgidus', 'En funcionamiento', 'Parqueadero', 'Académico-Administrativo', 'Bodega', 'Séptimo Piso', '88', '4520', NULL);
+('3', '7', 'Vulpes cinereoargenteus', 'En funcionamiento', 'Planta tratamiento agua', 'Administrativo', 'Aula/salón', 'Tercer Piso', '37', '2422', NULL);
+('4', '2', 'Sylvilagus floridanus', 'Deshabilitado', 'Pozo Séptico', 'Investigación', 'Baño Mujeres', 'Cuarto Piso', '69', '4065', NULL);
+('5', '5', 'Spilogale gracilis', 'En funcionamiento', 'Edificio/Bloque', 'Académico', 'Sala de tutores', 'Cubierta', '30', '2698', 'Ne in nemore . . .'' nihilo minus legimus quam hoc idem Graecum, quae autem de bene beateque vivendum. Sed existimo te, sicut nostrum Triarium, minus ab eo dissentiunt, sed certe non probes, eum quem ego arbitror unum vidisse verum maximisque erroribus animos hominum liberavisse et omnia tradidisse, quae pertinerent ad bene beateque vivendo a.');
+('6', '18', 'Bison bison', 'Funcionamiento Parcial', 'Pozo Séptico', 'Investigación', 'Anfiteatro Animales', 'Primer Piso', '36', '3650', 'Meo doctiores cives mei, nec cum iracundia aut pertinacia recte disputari potest. Sed ad haec, nisi molestum est, habeo quae.');
+('7', '18', 'Phylurus milli', 'Deshabilitado', 'Planta tratamiento agua', 'Administrativo', 'Local', 'Campus', '66', '4832', 'Nec eae se foris solum iactant nec tantum in alios caeco impetu incurrunt, sed intus etiam in animis inclusae inter se dissident atque discordant, ex quo efficeretur mundus omnesque partes mundi, quaeque in eo filio adhibuit, quem in adoptionem D. Silano emancipaverat, ut eum Macedonum legatis accusantibus, quod pecunias praetorem in provincia cepisse arguerent.');
+('8', '9', 'Sciurus vulgaris', 'En funcionamiento', 'Parqueadero', 'Académico-Administrativo', 'Sala de tutores', 'Cubierta', '61', '4652', 'Causa dicere, -- et illum motum naturalem omnium ponderum, ut ipse loquerer, tum Triarius leniter arridens: Tu quidem, inquit, totum Epicurum paene e philosophorum choro sustulisti. Quid.');
+('9', '19', 'Paroaria gularis', 'En funcionamiento', 'Parqueadero', 'Académico-Administrativo', 'Camerino', 'Cubierta', '50', '4148', NULL);
+('10', '7', 'Eolophus roseicapillus', 'En funcionamiento', 'Unidad almacenamiento residuos', 'Bienestar Universitario', 'Baño Mujeres', 'Cuarto Piso', '12', '4677', NULL);
+
+COMMIT;

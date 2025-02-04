@@ -181,6 +181,9 @@ const TABLES = {
   USUARIO: `${SCHEMA}.Usuario`,
   PERSONA: `${SCHEMA}.Persona`,
   AUDITORIA: `${SCHEMA}.Auditoria`,
+// WIP
+  MANTENMIENTO: `${SCHEMA}.Mantenimiento`,
+  ESPACIO: `${SCHEMA}.Espacio`,
 
 };
 
@@ -200,5 +203,6 @@ export {
   getPersonas,
   getAccountInfo,
   deleteAccount,
-  getAuditoria
+  getAuditoria,
+
 };
