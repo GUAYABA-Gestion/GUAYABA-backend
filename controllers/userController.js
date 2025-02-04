@@ -67,32 +67,6 @@ export const User = {
     }
   },
 
-  deleteUser: async (req, res) => {
-    try {
-      const userId = req.user.userId; // Obtener el ID del usuario del token JWT
-
-      // Verificar que el usuario existe
-      const userCheck = await pool.query(
-        `SELECT * FROM guayaba.Persona WHERE id_persona = $1`,
-        [userId]
-      );
-
-      if (userCheck.rowCount === 0) {
-        return res.status(404).json({ error: "Usuario no encontrado" });
-      }
-
-      // Eliminar el usuario
-      await pool.query(`DELETE FROM guayaba.Persona WHERE id_persona = $1`, [
-        userId,
-      ]);
-
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error al eliminar usuario:", error);
-      res.status(500).json({ error: "Error interno del servidor" });
-    }
-  },
-
   getUserData: async (req, res) => {
     try {
       // Usuario ya validado por el middleware
@@ -163,6 +137,37 @@ export const User = {
       await pool.query("ROLLBACK");
       console.error("Error al eliminar usuario:", error);
       res.status(500).json({ error: "Error al eliminar la cuenta" });
+    }
+  },
+
+  updateUser: async (req, res) => {
+    const { id_persona, nombre, correo, telefono, rol, detalles, id_sede } =
+      req.body;
+
+    try {
+      const updatePersonaQuery = `
+      UPDATE guayaba.Persona
+      SET nombre = $2, correo = $3, telefono = $4, rol = $5, detalles = $6, id_sede = $7
+      WHERE id_persona = $1;
+      `;
+
+      const values = [
+        id_persona,
+        nombre,
+        correo,
+        telefono,
+        rol,
+        detalles,
+        id_sede,
+      ];
+      await pool.query(updatePersonaQuery, values);
+
+      res.status(200).json({ message: "Cuenta actualizada exitosamente." });
+    } catch (error) {
+      console.error("Error al actualizar la cuenta:", error.message);
+      res
+        .status(500)
+        .json({ error: "Hubo un problema al actualizar la cuenta." });
     }
   },
 };
