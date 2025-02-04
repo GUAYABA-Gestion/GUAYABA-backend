@@ -3,9 +3,9 @@ import jwt from "jsonwebtoken";
 export const generateTestJWT = () => {
   return jwt.sign(
     {
-      userId: 9999,  // ID de prueba
-      email: "testuser@guayaba.com",
-      userName: "Test User",
+      userId: 1,  // ID de prueba
+      email: "guayabagestion@gmail.com",
+      userName: "Guayaba Test Admin",
       rol: "admin",
       id_sede: 1
     },
