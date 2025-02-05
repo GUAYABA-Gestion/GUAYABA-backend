@@ -79,26 +79,27 @@ export const Edificio = {
     if (!id_sede) {
       return res
         .status(400)
-        .json({ error: "El parámetro id_edificio es requerido." });
+        .json({ error: "El parámetro id_sede es requerido." });
     }
 
     try {
       const query = `
-            SELECT id_edificio, nombre, direccion, categoria, propiedad, area_terreno,
-            area_construida, cert_uso_suelo
-            FROM guayaba.Edificio
-            INNER JOIN guayaba.Sede ON guayaba.Edificio.id_sede = guayaba.Sede.id_sede
-            WHERE guayaba.Edificio.id_sede = $1;
+            SELECT e.id_edificio, e.nombre, e.dirección, e.categoría, e.propiedad, e.area_terreno,
+                   e.area_construida, e.cert_uso_suelo, s.nombre AS nombre_sede
+            FROM guayaba.Edificio e
+            INNER JOIN guayaba.Sede s ON e.id_sede = s.id_sede
+            WHERE e.id_sede = $1;
           `;
 
-      const result = await pool.query(query, [id_sede]);
+      const { rows } = await pool.query(query, [id_sede]);
 
-      res.json(result);
+      res.json(rows);
     } catch (error) {
       console.error("Error al obtener los edificios:", error.message);
       res.status(500).json({ error: "Error al obtener los edificios." });
     }
   },
+
 
   updateEdificio: async (req, res) => {
     const {

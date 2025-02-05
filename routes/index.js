@@ -40,7 +40,7 @@ router.use("/sedes", sedeRoutes);
 //WIP
 router.use("/espacio", espacioRoutes);
 router.use("/mantenimiento", mantenimientoRoutes);
-router.use("/edificios", sedeRoutes);
+router.use("/edificios", edificioRoutes);
 router.use("/auditoria", auditRoutes)
 
 export default router;
