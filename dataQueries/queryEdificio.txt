@@ -1,15 +1,26 @@
 BEGIN;
 
-INSERT INTO guayaba.edificio ("id_sede", "id_titular", "nombre", "dirección", "categoría", "propiedad", "area_terreno", "area_construida", "cert_uso_suelo") 
-VALUES
-( '1', '1', 'Voluptates fugiat', '13966 Vaughn Way', 'SEDE Y CAT', 'NO OPERACIONAL', '1504', '3277', '1'),
-( '4', '2', 'Mihi', '7156 Casteel Avenue', 'OTRO', 'ARRENDADO', '1847', '2826', '0'),
-( '5', '3', 'Tollatur error', '715 Carolina Court', 'SEDE', 'NO OPERACIONAL', '1536', '3035', '1'),
-( '3', '4', 'Vivendi', '2014 Love Avenue', 'SEDE Y CAT', 'ARRENDADO', '1223', '3215', '0'),
-( '5', '5', 'Contra quos', '2615 Vineyard Drive', 'OTRO', 'NO OPERACIONAL', '1710', '2360', '0'),
-( '5', '6', 'Malunt scribi', '4922 Markward Drive', 'PRINCIPAL', 'NO OPERACIONAL', '1151', '2021', '0'),
-( '3', '7', 'Triarius in', '9390 Irdell Avenue', 'PRINCIPAL', 'NO OPERACIONAL', '1208', '3036', '1'),
-( '2', '8', 'Esse censet', '14315 Mundelein Place', 'SEDE', 'ARRENDADO', '1194', '3051', '1'),
-( '5', '9', 'Crudeli', '2495 Deveaux Lane', 'PRINCIPAL', 'ARRENDADO', '1235', '3108', '1'),
-( '3', '5', 'Et', '10129 Santa Anna Lane', 'CAT', 'PROPIO', '1076', '2010', '1');
+INSERT INTO guayaba.Edificio ("id_sede", "id_titular", "nombre", "dirección", "categoría", "propiedad", "area_terreno", "area_construida", "cert_uso_suelo") 
+VALUES 
+('1', '11', 'Censes haec', '7520 Kersey Way', 'CAT', 'NO OPERACIONAL', '1226', '2575', '0'),
+('4', '19', 'Ab', '11331 San Jose Place', 'SEDE', 'PROPIO', '1441', '2478', '1'),
+('2', '24', 'Postea', '3618 Gatsby Lane', 'SEDE', 'ARRENDADO', '1044', '3180', '0'),
+('5', '66', 'Ipse', '10401 Lesiege Lane', 'PRINCIPAL', 'ARRENDADO', '1593', '3791', '1'),
+('3', '87', 'Quam', '116 Vicksburg Avenue', 'OTRO', 'ARRENDADO', '1348', '3861', '0'),
+('5', '63', 'Partem ad', '12043 Ellenton Run', 'CAT', 'ARRENDADO', '1201', '3585', '1'),
+('1', '10', 'Omnis ratio', '161 Post Oak Court', 'CAT', 'PROPIO', '1623', '3012', '0'),
+('3', '51', 'Iam', '903 Merida Circle', 'SEDE Y CAT', 'PROPIO', '1712', '3344', '1'),
+('2', '9', 'Enim', '13168 Webb Way', 'SEDE Y CAT', 'ARRENDADO', '1836', '2366', '0'),
+('4', '61', 'Dictum', '5411 Oboe Way', 'SEDE', 'ARRENDADO', '1616', '3120', '1'),
+('4', '99', 'Requirere voluptatem', '6375 Donna Avenue', 'OTRO', 'NO OPERACIONAL', '1255', '3401', '0'),
+('3', '39', 'Tamen', '930 Bishopville Loop', 'OTRO', 'PROPIO', '1721', '2197', '1'),
+('1', '27', 'Aliquid praeter', '995 Dingman Way', 'SEDE Y CAT', 'PROPIO', '1103', '2804', '1'),
+('2', '78', 'Ac', '8180 Aragon Lane', 'SEDE Y CAT', 'NO OPERACIONAL', '1625', '3749', '1'),
+('5', '76', 'Si', '3415 Tanya Terrace', 'SEDE Y CAT', 'ARRENDADO', '1066', '2414', '0'),
+('5', '58', 'Est Tuo', '12847 Stricklin Street', 'SEDE', 'PROPIO', '1942', '2533', '1'),
+('3', '91', 'Optimi', '9509 O''Day Street', 'PRINCIPAL', 'NO OPERACIONAL', '1986', '3415', '1'),
+('1', '12', 'A te', '14060 Corbett Drive', 'PRINCIPAL', 'ARRENDADO', '1816', '3566', '1'),
+('4', '46', 'Legant Utinam', '13925 Bainbridge Lane', 'OTRO', 'NO OPERACIONAL', '1949', '3040', '1'),
+('2', '85', 'Aequo e', '7401 Colerain Circle', 'PRINCIPAL', 'PROPIO', '1434', '2796', '0');
+
 COMMIT;
