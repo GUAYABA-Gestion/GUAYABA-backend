@@ -5,7 +5,11 @@ export const Sede = {
   getSedes: async (req, res) => {
     try {
       const result = await pool.query(
-        `SELECT id_sede, nombre FROM guayaba.Sede`
+        `SELECT s.id_sede, s.nombre, s.municipio, s.coordinador, 
+        m.nombre AS nombre_municipio, p.nombre AS nombre_coordinador
+        FROM guayaba.Sede s
+        INNER JOIN guayaba.Municipio m ON s.municipio = m.id
+        INNER JOIN guayaba.Persona p ON s.coordinador = p.id_persona`
       );
       res.json(result.rows);
     } catch (error) {
@@ -19,9 +23,12 @@ export const Sede = {
       const { id } = req.params;
 
       const result = await pool.query(
-        `SELECT id_sede, nombre, municipio, coordinador 
-         FROM guayaba.Sede 
-         WHERE id_sede = $1`,
+        `SELECT s.id_sede, s.nombre, s.municipio, s.coordinador, 
+        m.nombre AS nombre_municipio, p.nombre AS nombre_coordinador
+        FROM guayaba.Sede s
+        INNER JOIN guayaba.Municipio m ON s.municipio = m.id
+        INNER JOIN guayaba.Persona p ON s.coordinador = p.id_persona
+        WHERE s.id_sede = $1`,
         [id]
       );
 
