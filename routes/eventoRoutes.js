@@ -3,11 +3,14 @@ import { Evento } from "../controllers/eventoController.js"; // Importar el obje
 import { validateGoogleToken, dynamicGoogleValidation, jwtAuth } from "../middlewares/authMiddleware.js";
 
 const router = Router();
-
-router.get("/getAll", jwtAuth, Espacio.getAll);
-router.post("/getBy", jwtAuth, Espacio.getBy);
-router.post("/create", jwtAuth, Espacio.create);
-router.put("/update", jwtAuth, Espacio.update);
-router.put("/delete", jwtAuth, Espacio.delete);
-
+try{
+router.get("/getAll", jwtAuth, Evento.getAll);
+router.post("/getBy", jwtAuth, Evento.getBy);
+router.post("/create", jwtAuth, Evento.create);
+router.put("/update", jwtAuth, Evento.  update);
+router.put("/delete", jwtAuth, Evento.delete);
+}
+catch(error){
+    console.log(error);
+}
 export default router;

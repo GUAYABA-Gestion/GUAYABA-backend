@@ -3,6 +3,7 @@ import userRoutes from "./userRoutes.js";
 import sedeRoutes from "./sedeRoutes.js";
 import espacioRoutes from "./espacioRoutes.js";
 import mantenimientoRoutes from "./mantenimientoRoutes.js";
+import eventoRoutes from "./eventoRoutes.js";
 import edificioRoutes from "./edificioRoutes.js"
 import auditRoutes from "./auditRoutes.js"
 import { pool } from "../db.js";
@@ -42,5 +43,6 @@ router.use("/espacio", espacioRoutes);
 router.use("/mantenimiento", mantenimientoRoutes);
 router.use("/edificios", edificioRoutes);
 router.use("/auditoria", auditRoutes)
+router.use("/evento",eventoRoutes);
 
 export default router;
