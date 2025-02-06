@@ -2,7 +2,7 @@ import { query } from "../utils/dbUtils.js";
 
 const anyQuery = `
 BEGIN;
-SELECT * FROM guayaba.Edificio;
+SELECT * FROM guayaba.mantenimiento;
 COMMIT;
 `;
 

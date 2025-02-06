@@ -4,10 +4,10 @@ import jwt from "jsonwebtoken"; // falta implementacion de jwt en reqs
 export const Espacio = {
   getAll: async (req, res) => {
     try {
-      const { rows } = await pool.query('SELECT * FROM guayaba.Espacio');
+      const { rows } = await pool.query('SELECT * FROM guayaba.Evento');
       res.status(200).json({ success: true, data: rows });
     } catch (error) {
-      console.error("Error obteniendo espacios:", error);
+      console.error("Error obteniendo eventos:", error);
       res.status(500).json({ success: false, error: "Error interno del servidor" });
     }
   },
@@ -137,18 +137,18 @@ export const Espacio = {
     try {
       const { id } = req.body;
       const { rows } = await pool.query(
-        'DELETE FROM guayaba.Espacio WHERE id_espacio = $1 RETURNING *',
+        'DELETE FROM guayaba.Evento WHERE id_evento = $1 RETURNING *',
         [id]
       );
 
       if (rows.length === 0) {
-        return res.status(404).json({ success: false, error: "Espacio no encontrado" });
+        return res.status(404).json({ success: false, error: "Evento no encontrado" });
       }
 
       res.status(200).json({ success: true, data: rows[0] });
     } catch (error) {
-      console.error("Error eliminando espacio:", error);
-      res.status(500).json({ success: false, error: "Error al eliminar espacio" });
+      console.error("Error eliminando evento:", error);
+      res.status(500).json({ success: false, error: "Error al eliminar evento" });
     }
   }
 };

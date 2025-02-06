@@ -3,6 +3,18 @@ import jwt from "jsonwebtoken"; // falta implementacion de jwt en reqs
 
 
 export const Mantenimiento = {
+
+
+  pingtest: async(req,res) => {
+        try {
+          const result = await pool.query("SELECT NOW()");
+          res.json(result.rows[0]);
+        } catch (error) {
+          console.error("Error en /ping:", error.message);
+          res.status(500).json({ error: "Error al consultar la base de datos" });
+        }
+      },
+      
   create: async (req, res) => {
     try {
       const requiredFields = ['id_espacio', 'id_encargado', 'Estado', 'tipo', 'Prioridad'];
@@ -17,22 +29,22 @@ export const Mantenimiento = {
 
       const { rows } = await pool.query(
         //falta validacion de FK
-        `INSERT INTO "Mantenimiento" 
-        (id_espacio, id_encargado, Estado, tipo_contrato, tipo, Necesidad, Prioridad, Detalle, fecha_ini, fecha_fin, Observación) 
+        `INSERT INTO guayaba.Mantenimiento
+        (id_espacio, id_encargado, tipo_contrato, tipo, estado, necesidad, prioridad, detalle, fecha_ini, fecha_fin, observación) 
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
         RETURNING *`,
         [
           req.body.id_espacio,
           req.body.id_encargado,
-          req.body.Estado,
           req.body.tipo_contrato || 'interno',
           req.body.tipo,
-          req.body.Necesidad || null,
-          req.body.Prioridad,
-          req.body.Detalle || null,
+          req.body.estado,
+          req.body.necesidad || null,
+          req.body.prioridad,
+          req.body.detalle || null,
           req.body.fecha_ini || new Date().toISOString(),
           req.body.fecha_fin || null,
-          req.body.Observación || null
+          req.body.observación || null
         ]
       );
 
@@ -45,13 +57,14 @@ export const Mantenimiento = {
 
   getById: async (req, res) => {
     try {
-      const { id } = req.params;
+      const { id } = req.body;
       const { rows } = await pool.query(
-        'SELECT * FROM "Mantenimiento" WHERE id_espacio = $1',
+        'SELECT * FROM guayaba.Mantenimiento WHERE id_mantenimiento = $1',
         [id]
       );
       
       res.status(200).json({ success: true, data: rows });
+      //res.status(200).json(rows);
     } catch (error) {
       console.error("Error obteniendo mantenimientos:", error);
       res.status(500).json({ success: false, error: "Error al obtener historial de mantenimiento" });
@@ -60,7 +73,7 @@ export const Mantenimiento = {
 
   updateEstado: async (req, res) => {
     try {
-      const { id } = req.params;
+      const { id } = req.body;
       const { nuevoEstado } = req.body;
 
       if (!nuevoEstado) {
@@ -71,11 +84,11 @@ export const Mantenimiento = {
       }
 
       const { rows } = await pool.query(
-        `UPDATE "Mantenimiento" 
+        `UPDATE guayaba.Mantenimiento 
         SET Estado = $1, fecha_fin = $2 
         WHERE id_mantenimiento = $3 
         RETURNING *`,
-        [nuevoEstado, nuevoEstado === 'Completado' ? new Date() : null, id]
+        [nuevoEstado, nuevoEstado === 'Completo' ? new Date() : null, id]
       );
 
       if (rows.length === 0) {
@@ -91,9 +104,9 @@ export const Mantenimiento = {
 
   delete: async (req, res) => {
     try {
-      const { id } = req.params;
+      const { id } = req.body;
       const { rows } = await pool.query(
-        'DELETE FROM "Mantenimiento" WHERE id_mantenimiento = $1 RETURNING *',
+        'DELETE FROM guayaba.Mantenimiento WHERE id_mantenimiento = $1 RETURNING *',
         [id]
       );
 

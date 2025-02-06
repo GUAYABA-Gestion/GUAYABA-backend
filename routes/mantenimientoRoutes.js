@@ -4,9 +4,11 @@ import { validateGoogleToken, dynamicGoogleValidation, jwtAuth } from "../middle
 
 const router = Router();
 
-router.post("/getMantenimiento", jwtAuth, Mantenimiento.getById);
+router.post("/getBy", jwtAuth,Mantenimiento.getById);
 router.post("/create", jwtAuth, Mantenimiento.create);
 router.put("/update", jwtAuth, Mantenimiento.updateEstado);
-router.delete("/delete", jwtAuth, Mantenimiento.delete);
+router.put("/delete", jwtAuth, Mantenimiento.delete);
+
+router.get("/ping",jwtAuth,Mantenimiento.pingtest);
 
 export default router;

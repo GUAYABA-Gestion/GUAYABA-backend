@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { Espacio } from "../controllers/espacioController.js"; // Importar el objeto espacio
+import { Evento } from "../controllers/eventoController.js"; // Importar el objeto evento
 import { validateGoogleToken, dynamicGoogleValidation, jwtAuth } from "../middlewares/authMiddleware.js";
 
 const router = Router();
