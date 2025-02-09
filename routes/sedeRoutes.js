@@ -7,7 +7,7 @@ import {
 
 const router = Router();
 
-router.get("/", validateGoogleTokenFromGet, Sede.getSedes);
+router.get("/", jwtAuth, Sede.getSedes);
 router.get("/:id", jwtAuth, Sede.getSedeById);
 router.post("/create-sede", jwtAuth, Sede.createSede);
 router.post("/update-sede", jwtAuth, Sede.updateSede);

@@ -36,8 +36,14 @@ async function cargarDatos(nombreTabla, rutaQuery) {
   try {
     // Cargar datos para cada tabla
     await cargarDatos("guayaba.Municipio", "./dataQueries/queryDepartMunicip.txt");
+    await cargarDatos("guayaba.Facultad", "./dataQueries/queryFacultProgram.txt");
     await cargarDatos("guayaba.Persona", "./dataQueries/queryPersona.txt");
     await cargarDatos("guayaba.Sede", "./dataQueries/querySede.txt");
+    await cargarDatos("guayaba.Edificio", "./dataQueries/queryEdificio.txt")
+    await cargarDatos("guayaba.Espacio", "./dataQueries/queryEspacio.txt");
+    await cargarDatos("guayaba.Evento", "./dataQueries/queryEvento.txt");
+    await cargarDatos("guayaba.Mantenimiento", "./dataQueries/queryMantenimiento.txt");
+
 
     console.log("Todos los datos han sido cargados correctamente.");
   } catch (error) {

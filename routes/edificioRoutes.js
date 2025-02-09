@@ -14,6 +14,6 @@ const router = Router();
 
 router.post('/create-edificio', jwtAuth, Edificio.createEdificio);
 
-router.get('/edificios', jwtAuth, Edificio.getEdificios);
+router.get('/', jwtAuth, Edificio.getEdificios);
 
 export default router;

@@ -28,7 +28,7 @@ CREATE INDEX idx_municipio_nombre ON guayaba.Municipio(nombre);
 CREATE TABLE guayaba.Persona (
     id_persona SERIAL PRIMARY KEY,
     correo VARCHAR(100) NOT NULL UNIQUE,
-    nombre VARCHAR(150) NOT NULL,
+    nombre VARCHAR(255) NOT NULL,
     telefono VARCHAR(15),
     rol VARCHAR(50) NOT NULL,
     detalles VARCHAR(255)
@@ -41,7 +41,7 @@ CREATE INDEX idx_persona_correo ON guayaba.Persona(correo);
 -- Tabla Sede
 CREATE TABLE guayaba.Sede (
     id_sede SERIAL PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
+    nombre VARCHAR(255) NOT NULL,
     municipio INTEGER NOT NULL,
     coordinador INTEGER NOT NULL,
     FOREIGN KEY (municipio) REFERENCES guayaba.Municipio(id),
@@ -58,7 +58,7 @@ CREATE TABLE guayaba.Edificio (
     id_edificio SERIAL PRIMARY KEY,
     id_sede INTEGER NOT NULL,
     id_titular INTEGER NOT NULL,
-    nombre VARCHAR(100) NOT NULL,
+    nombre VARCHAR(255) NOT NULL,
     dirección VARCHAR(150),
     categoría VARCHAR(50),
     propiedad VARCHAR(50),
@@ -73,7 +73,7 @@ CREATE TABLE guayaba.Edificio (
 CREATE TABLE guayaba.Espacio (
     id_espacio SERIAL PRIMARY KEY,
     id_edificio INTEGER NOT NULL,
-    nombre VARCHAR(100),
+    nombre VARCHAR(255),
     estado VARCHAR(50),
     clasificacion VARCHAR(50),
     uso VARCHAR(50),
@@ -94,7 +94,7 @@ CREATE TABLE guayaba.Facultad (
 CREATE TABLE guayaba.Programa (
     id_programa SERIAL PRIMARY KEY, 
     id_facultad INTEGER NOT NULL,   
-    nombre VARCHAR(50),         
+    nombre VARCHAR(255),         
     nivel VARCHAR(20),
     FOREIGN KEY (id_facultad) REFERENCES guayaba.Facultad(id_facultad)
 );
@@ -121,7 +121,7 @@ CREATE TABLE guayaba.Evento (
 
 -- Tabla Mantenimiento
 CREATE TABLE guayaba.Mantenimiento (
-    id SERIAL PRIMARY KEY,
+    id_mantenimiento SERIAL PRIMARY KEY,
     id_espacio INTEGER NOT NULL,
     id_encargado INTEGER NOT NULL,
     tipo_contrato VARCHAR(20),

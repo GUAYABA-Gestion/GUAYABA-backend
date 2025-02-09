@@ -8,7 +8,6 @@ import { pool } from "../db.js";
 export const query = async (query) => {
   try {
     const result = await pool.query(query);
-    console.log(result);
     return result; // Retornar el resultado de la consulta
   } catch (err) {
     throw err; // Re-lanzar el error para manejarlo donde se llame

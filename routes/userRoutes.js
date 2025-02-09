@@ -7,7 +7,7 @@ const router = Router();
 router.post("/check-user", dynamicGoogleValidation, User.checkUser);
 router.post("/register", validateGoogleToken, User.registerUser);
 router.get("/me", jwtAuth, User.getUserData);
-router.post("/update", jwtAuth, User.updateUser);
+router.put("/update", jwtAuth, User.updateUser);
 router.delete("/delete", jwtAuth, User.deleteUser);
 
 export default router;
