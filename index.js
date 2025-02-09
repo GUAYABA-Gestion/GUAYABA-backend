@@ -5,15 +5,15 @@ import routes from "./routes/index.js"
 
 const app = express();
 
-// Configuración de CORS
 const corsOptions = {
   origin: [
-    'http://localhost:3000',  // Desarrollo local
-    'https://guayaba-frontend.vercel.app/' // Producción
+    'http://localhost:3000', // Desarrollo
+    'https://guayaba-frontend.vercel.app' // Producción 
   ],
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], 
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true,
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 200 
 };
 
 app.use(cors(corsOptions));
