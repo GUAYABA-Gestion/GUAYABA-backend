@@ -76,10 +76,12 @@ export const Edificio = {
   getEdificios: async (req, res) => {
     try {
       const query = `
-        SELECT e.id_edificio, e.nombre, e.dirección, e.categoría, e.propiedad, e.area_terreno,
-                e.area_construida, e.cert_uso_suelo, s.nombre AS nombre_sede
+        SELECT e.id_edificio, e.id_sede, e.id_titular, e.nombre, e.dirección, e.categoría, e.propiedad, e.area_terreno,
+                e.area_construida, e.cert_uso_suelo, s.nombre AS nombre_sede, p.nombre as nombre_titular
         FROM guayaba.Edificio e
         INNER JOIN guayaba.Sede s ON e.id_sede = s.id_sede
+        INNER JOIN guayaba.Persona p ON e.id_titular = p.id_persona 
+
       `;
 
       const { rows } = await pool.query(query);
