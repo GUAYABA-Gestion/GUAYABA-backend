@@ -6,7 +6,7 @@ export const Audit = {
   getAuditoria: async (req, res) => {
     try {
       const result = await pool.query(`
-            SELECT tabla_afectada, operacion, fecha_hora, datos_anteriores, datos_nuevos   
+            SELECT id_auditoria, tabla_afectada, operacion, fecha_hora, datos_anteriores, datos_nuevos   
             FROM guayaba.Auditoria
             ORDER BY fecha_hora desc;
           `);
