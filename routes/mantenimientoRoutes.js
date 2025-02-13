@@ -4,6 +4,7 @@ import { validateGoogleToken, dynamicGoogleValidation, jwtAuth } from "../middle
 
 const router = Router();
 
+router.get("/getAll", jwtAuth, Mantenimiento.getAll);
 router.post("/getBy", jwtAuth,Mantenimiento.getById);
 router.post("/create", jwtAuth, Mantenimiento.create);
 router.put("/update", jwtAuth, Mantenimiento.updateEstado);

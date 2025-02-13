@@ -55,6 +55,16 @@ export const Mantenimiento = {
     }
   },
 
+  getAll: async (req, res) => {
+    try {
+      const { rows } = await pool.query('SELECT * FROM guayaba.Mantenimiento');
+      res.status(200).json({ success: true, data: rows });
+    } catch (error) {
+      console.error("Error obteniendo Mantenimientos:", error);
+      res.status(500).json({ success: false, error: "Error interno del servidor" });
+    }
+  },
+
   getById: async (req, res) => {
     try {
       const { id } = req.body;

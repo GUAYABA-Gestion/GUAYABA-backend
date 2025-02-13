@@ -66,7 +66,26 @@ export const User = {
       res.status(400).json({ error: "Error al registrar usuario" });
     }
   },
+  getUsersData: async (req, res) => {
+    try {
+      // Usuario ya validado por el middleware
+      const users = await pool.query(
+        `SELECT id_persona, correo, nombre, rol, id_sede 
+         FROM guayaba.Persona 
+         `,
+      );
 
+
+      if (users.rowCount === 0) {
+        return res.status(404).json({ error: "Usuarios no encontrados" });
+      }
+
+      res.json(users.rows);
+    } catch (error) {
+      console.error("Error en getMe:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+    }
+  },
   getUserData: async (req, res) => {
     try {
       // Usuario ya validado por el middleware
@@ -85,6 +104,27 @@ export const User = {
       res.json(user.rows[0]);
     } catch (error) {
       console.error("Error en getMe:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+    }
+  },
+  getUserDataById: async (req, res) => {
+    try {
+      // Usuario ya validado por el middleware
+      const user = await pool.query(
+        `SELECT id_persona, correo, nombre, rol, id_sede 
+         FROM guayaba.Persona 
+         WHERE id_persona = $1`,
+        [req.body.userId]
+      );
+
+
+      if (user.rowCount === 0) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
+
+      res.json(user.rows[0]);
+    } catch (error) {
+      console.error("Error en getById:", error);
       res.status(500).json({ error: "Error interno del servidor" });
     }
   },
