@@ -68,7 +68,7 @@ export const jwtAuth = async (req, res, next) => {
 
     // Verificar JWT
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     // Verificar en base de datos
     const user = await pool.query(
       `SELECT id_persona, rol FROM guayaba.Persona 

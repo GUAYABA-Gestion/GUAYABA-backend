@@ -20,10 +20,6 @@ export const User = {
       const token = jwt.sign(
         {
           userId: user.id_persona,
-          email: user.correo,
-          userName: user.nombre,
-          rol: user.rol,
-          id_sede: user.id_sede,
         },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
@@ -51,10 +47,6 @@ export const User = {
       const token = jwt.sign(
         {
           userId: newUser.id_persona,
-          email: newUser.correo,
-          userName: newUser.nombre,
-          rol: newUser.rol,
-          id_sede: newUser.id_sede,
         },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
