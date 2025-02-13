@@ -77,14 +77,11 @@ export const User = {
         [req.user.userId]
       );
 
-      // Generar nuevo token si falta menos de 15min para expirar
-      const newToken = jwt.sign(
-        { userId: req.user.userId },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-      );
 
-      res.setHeader("x-new-token", newToken);
+      if (user.rowCount === 0) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
+      
       res.json(user.rows[0]);
     } catch (error) {
       console.error("Error en getMe:", error);
