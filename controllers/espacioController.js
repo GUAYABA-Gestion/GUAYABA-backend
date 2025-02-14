@@ -5,7 +5,7 @@ export const Espacio = {
   getAll: async (req, res) => {
     try {
       const { rows } = await pool.query('SELECT * FROM guayaba.Espacio');
-      res.status(200).json({ success: true, data: rows });
+      res.status(200).json(rows);
     } catch (error) {
       console.error("Error obteniendo espacios:", error);
       res.status(500).json({ success: false, error: "Error interno del servidor" });
@@ -45,11 +45,7 @@ export const Espacio = {
             Object.values(filters)
         );
 
-        res.status(rows.length ? 200 : 404).json({
-            success: true,
-            count: rows.length,
-            data: rows
-        });
+        res.status(rows.length ? 200 : 404).json( rows);
         
     } catch (error) {
         console.error("Error en consulta filtrada:", error);
