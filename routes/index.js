@@ -6,6 +6,7 @@ import mantenimientoRoutes from "./mantenimientoRoutes.js";
 import eventoRoutes from "./eventoRoutes.js";
 import edificioRoutes from "./edificioRoutes.js"
 import auditRoutes from "./auditRoutes.js"
+import alertaRoutes from "./alertaRoutes.js"
 import { pool } from "../db.js";
 
 import { generateTestJWT } from "../controllers/utilsController.js"; // Importa la función
@@ -44,5 +45,5 @@ router.use("/mantenimiento", mantenimientoRoutes);
 router.use("/edificios", edificioRoutes);
 router.use("/auditoria", auditRoutes)
 router.use("/evento",eventoRoutes);
-
+router.use("/alerta",alertaRoutes);
 export default router;

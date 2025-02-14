@@ -5,7 +5,7 @@ export const Espacio = {
   getAll: async (req, res) => {
     try {
       const { rows } = await pool.query('SELECT * FROM guayaba.Espacio');
-      res.status(200).json({ success: true, data: rows });
+      res.status(200).json(rows);
     } catch (error) {
       console.error("Error obteniendo espacios:", error);
       res.status(500).json({ success: false, error: "Error interno del servidor" });
@@ -14,7 +14,7 @@ export const Espacio = {
 
   getBy: async (req, res) => {
     try {
-        const validFilters = ['id_espacio', 'id_edificio', 'Tipo', 'estado', 'Facultad'];
+        const validFilters = ['id_espacio', 'id_edificio', 'tipo', 'estado', 'Facultad'];
         
         // Combinar query y body
         const requestData = { ...req.query, ...req.body };
@@ -45,11 +45,7 @@ export const Espacio = {
             Object.values(filters)
         );
 
-        res.status(rows.length ? 200 : 404).json({
-            success: true,
-            count: rows.length,
-            data: rows
-        });
+        res.status(rows.length ? 200 : 404).json( rows);
         
     } catch (error) {
         console.error("Error en consulta filtrada:", error);
@@ -63,7 +59,7 @@ export const Espacio = {
 
   create: async (req, res) => {
     try {
-      const requiredFields = ['id_edificio', 'nombre', 'estado', 'tipo', 'capacidad'];
+      const requiredFields = ["id_edificio", "nombre", "estado", "clasificacion", "uso", "tipo", "piso", "capacidad", "mediciónmt2"];
       const missingFields = requiredFields.filter(field => !req.body[field]);
       //falta verificacion de FK en los parametros
       if (missingFields.length > 0) {
@@ -75,15 +71,18 @@ export const Espacio = {
 
       const { rows } = await pool.query(
         `INSERT INTO guayaba.Espacio
-        (id_edificio, nombre, estado, tipo, capacidad, mediciónmt2) 
-        VALUES ($1, $2, $3, $4, $5, $6) 
+        (id_edificio, nombre, estado, clasificacion, uso, tipo, piso, capacidad, mediciónmt2) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
         RETURNING *`,
         [
           req.body.id_edificio,
-          req.body.nombre,
-          req.body.estado,
-          req.body.tipo,
-          req.body.capacidad,
+          req.body.nombre || null,
+          req.body.estado || null,
+          req.body.clasificacion || null,
+          req.body.uso || null ,
+          req.body.tipo || null,
+          req.body.piso || null ,
+          req.body.capacidad || null,
           req.body.mediciónmt2 || null
         ]
       );
