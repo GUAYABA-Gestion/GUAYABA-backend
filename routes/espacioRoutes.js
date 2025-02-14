@@ -5,6 +5,7 @@ import { validateGoogleToken, dynamicGoogleValidation, jwtAuth } from "../middle
 const router = Router();
 
 router.get("/getAll", jwtAuth, Espacio.getAll);
+router.get("/getBySede", jwtAuth, Espacio.getBySede);
 router.post("/getBy", jwtAuth, Espacio.getBy);
 router.post("/create", jwtAuth, Espacio.create);
 router.put("/update", jwtAuth, Espacio.update);

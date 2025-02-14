@@ -5,12 +5,31 @@ export const Espacio = {
   getAll: async (req, res) => {
     try {
       const { rows } = await pool.query('SELECT * FROM guayaba.Espacio');
-      res.status(200).json(rows);
+      res.status(200).json({ success: true, data: rows });
     } catch (error) {
       console.error("Error obteniendo espacios:", error);
       res.status(500).json({ success: false, error: "Error interno del servidor" });
     }
   },
+
+  getBySede: async (req, res) => {
+    const {id_sede} = req.body
+
+    try {
+      const { rows } = await pool.query(
+        `SELECT e.*
+        FROM guayaba.Espacio e
+        INNER JOIN guayaba.Edificio b ON e.edificio_id = b.id_edificio
+        WHERE b.id_sede = $1`, [id_sede]);
+    } catch (error) {
+      console.error("Error en consulta filtrada:", error);
+      res.status(500).json({
+          success: false,
+          error: "Error al buscar espacios",
+          details: error.message
+      });
+   }
+},
 
   getBy: async (req, res) => {
     try {
