@@ -57,50 +57,63 @@ export const validateGoogleTokenFromGet = async (req, res, next) => {
 
 export const jwtAuth = async (req, res, next) => {
   try {
+    // Obtener el token del header
     const token = req.headers.authorization?.split(' ')[1];
-    
+
+    // Si no hay token, devolver error
     if (!token) {
       return res.status(401).json({ 
         error: "NO_TOKEN",
-        message: "Acceso no autorizado" 
+        message: "Acceso no autorizado. Token no proporcionado." 
       });
     }
 
-    // Verificar JWT
+    // Verificar el token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Verificar en base de datos
+    // Verificar si el usuario existe en la base de datos
     const user = await pool.query(
       `SELECT id_persona, rol FROM guayaba.Persona 
        WHERE id_persona = $1`,
       [decoded.userId]
     );
 
+    // Si el usuario no existe, devolver error
     if (user.rowCount === 0) {
       return res.status(401).json({
         error: "INVALID_USER",
-        message: "Usuario no existe"
+        message: "Usuario no existe en la base de datos."
       });
     }
 
-    // Adjuntar usuario al request
+    // Adjuntar el usuario al request para uso posterior
     req.user = {
       ...decoded,
-      role: user.rows[0].rol // Incluir rol para autorizaciones
+      role: user.rows[0].rol // Incluir el rol del usuario
     };
-    
+
+    // Continuar con el siguiente middleware o ruta
     next();
 
   } catch (error) {
-    console.error("Error en authMiddleware:", error);
-    
-    const errorType = error instanceof jwt.TokenExpiredError 
-      ? "TOKEN_EXPIRED" 
-      : "INVALID_TOKEN";
+    console.error("Error en jwtAuth middleware:", error);
 
-    res.status(401).json({
+    // Manejar errores específicos de JWT
+    let errorType = "INVALID_TOKEN";
+    let errorMessage = "Token inválido.";
+
+    if (error instanceof jwt.TokenExpiredError) {
+      errorType = "TOKEN_EXPIRED";
+      errorMessage = "El token ha expirado. Por favor, inicie sesión nuevamente.";
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      errorType = "MALFORMED_TOKEN";
+      errorMessage = "Token malformado.";
+    }
+
+    // Devolver el error al cliente
+    return res.status(401).json({
       error: errorType,
-      message: error.message
+      message: errorMessage
     });
-  };
+  }
 };

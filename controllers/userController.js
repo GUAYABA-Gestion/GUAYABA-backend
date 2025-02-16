@@ -64,17 +64,15 @@ export const User = {
       // Consulta para obtener todos los usuarios con detalles de sede
       const users = await pool.query(
         `SELECT 
-         p.id_persona, 
-         p.correo, 
-         p.nombre, 
-         p.telefono, 
-         p.rol, 
-         p.detalles, 
-         s.nombre AS sede_nombre,
-         p.id_sede,
-         p.es_manual
-       FROM guayaba.Persona p
-       LEFT JOIN guayaba.Sede s ON p.id_sede = s.id_sede`
+          id_persona, 
+          correo, 
+          nombre, 
+          telefono, 
+          rol, 
+          detalles, 
+          id_sede,
+          es_manual
+        FROM guayaba.Persona;`
       );
 
       if (users.rowCount === 0) {
@@ -178,8 +176,9 @@ export const User = {
   },
 
   updateUser: async (req, res) => {
-    const { id_persona, nombre, correo, telefono, rol, detalles, id_sede } = req.body;
-  
+    const { id_persona, nombre, correo, telefono, rol, detalles, id_sede } =
+      req.body;
+
     try {
       const updatePersonaQuery = `
         UPDATE guayaba.Persona
@@ -187,43 +186,64 @@ export const User = {
         WHERE id_persona = $1
         RETURNING *;
       `;
-  
-      const values = [id_persona, nombre, correo, telefono, rol, detalles, id_sede];
+
+      const values = [
+        id_persona,
+        nombre,
+        correo,
+        telefono,
+        rol,
+        detalles,
+        id_sede,
+      ];
       const result = await pool.query(updatePersonaQuery, values);
-  
+
       if (result.rows.length === 0) {
         return res.status(404).json({ error: "Usuario no encontrado." });
       }
-  
+
       res.status(200).json(result.rows[0]); // Devuelve el usuario actualizado
     } catch (error) {
       console.error("Error al actualizar la cuenta:", error.message);
-      res.status(500).json({ error: "Hubo un problema al actualizar la cuenta." });
+      res
+        .status(500)
+        .json({ error: "Hubo un problema al actualizar la cuenta." });
     }
   },
-  
 
   addUsersManual: async (req, res) => {
     const { users } = req.body; // Array de usuarios
     try {
       await pool.query("BEGIN"); // Iniciar transacción
+      const addedUsers = [];
       for (const user of users) {
         const { nombre, correo, telefono, rol, detalles, id_sede } = user;
-        await pool.query(
+
+        const result = await pool.query(
           `INSERT INTO guayaba.Persona (nombre, correo, telefono, rol, detalles, id_sede, es_manual)
-           VALUES ($1, $2, $3, $4, $5, $6, TRUE)`,
+           VALUES ($1, $2, $3, $4, $5, $6, TRUE) RETURNING *`,
           [nombre, correo, telefono, rol, detalles, id_sede]
         );
+
+        addedUsers.push(result.rows[0]);
       }
       await pool.query("COMMIT"); // Confirmar transacción
-      res.status(200).json({ message: "Usuarios añadidos exitosamente." });
+      res
+        .status(200)
+        .json({
+          message: "Usuarios añadidos exitosamente.",
+          users: addedUsers,
+        });
     } catch (error) {
       await pool.query("ROLLBACK"); // Revertir transacción en caso de error
-      console.error("Error al añadir usuarios:", error.message);
-      res.status(500).json({ error: "Hubo un problema al añadir los usuarios." });
+      console.error("Error al añadir usuarios back:", error.message);
+      res
+        .status(500)
+        .json({
+          error: error.message || "Hubo un problema al añadir los usuarios.",
+        });
     }
   },
-
   deleteUserManual: async (req, res) => {
     const { id_persona } = req.body;
     try {
@@ -234,7 +254,39 @@ export const User = {
       res.status(200).json({ message: "Usuario eliminado exitosamente." });
     } catch (error) {
       console.error("Error al eliminar usuario:", error.message);
-      res.status(500).json({ error: "Hubo un problema al eliminar el usuario." });
+      res
+        .status(500)
+        .json({ error: "Hubo un problema al eliminar el usuario." });
+    }
+  },
+
+  getUserReferences: async (req, res) => {
+    const { id_persona } = req.body;
+    try {
+      const references = [];
+
+      // Verificar referencias en la tabla Mantenimiento
+      const mantenimientoResult = await pool.query(
+        `SELECT id_mantenimiento FROM guayaba.Mantenimiento WHERE id_encargado = $1`,
+        [id_persona]
+      );
+      if (mantenimientoResult.rowCount > 0) {
+        references.push("Mantenimiento");
+      }
+
+      // Verificar referencias en la tabla Sede
+      const sedeResult = await pool.query(
+        `SELECT id_sede FROM guayaba.Sede WHERE coordinador = $1`,
+        [id_persona]
+      );
+      if (sedeResult.rowCount > 0) {
+        references.push("Sede");
+      }
+
+      res.json({ references });
+    } catch (error) {
+      console.error("Error al obtener referencias del usuario:", error.message);
+      res.status(500).json({ error: "Hubo un problema al obtener las referencias del usuario." });
     }
   },
 };

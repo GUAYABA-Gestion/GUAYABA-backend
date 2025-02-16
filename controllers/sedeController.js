@@ -6,10 +6,10 @@ export const Sede = {
     try {
       const result = await pool.query(
         `SELECT s.id_sede, s.nombre, s.municipio, s.coordinador, 
-        m.nombre AS nombre_municipio, p.nombre AS nombre_coordinador
+              m.nombre AS nombre_municipio, p.nombre AS nombre_coordinador
         FROM guayaba.Sede s
         INNER JOIN guayaba.Municipio m ON s.municipio = m.id
-        INNER JOIN guayaba.Persona p ON s.coordinador = p.id_persona`
+        LEFT JOIN guayaba.Persona p ON s.coordinador = p.id_persona;`
       );
       res.json(result.rows);
     } catch (error) {
@@ -27,7 +27,7 @@ export const Sede = {
         m.nombre AS nombre_municipio, p.nombre AS nombre_coordinador
         FROM guayaba.Sede s
         INNER JOIN guayaba.Municipio m ON s.municipio = m.id
-        INNER JOIN guayaba.Persona p ON s.coordinador = p.id_persona
+        LEFT JOIN guayaba.Persona p ON s.coordinador = p.id_persona
         WHERE s.id_sede = $1`,
         [id]
       );

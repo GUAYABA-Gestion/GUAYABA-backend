@@ -18,13 +18,22 @@ CREATE TABLE guayaba.Municipio (
     id INTEGER PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     departamento_id INTEGER NOT NULL,
-    FOREIGN KEY (departamento_id) REFERENCES guayaba.Departamento(id)
+    FOREIGN KEY (departamento_id) REFERENCES guayaba.Departamento(id) ON DELETE RESTRICT
 );
 
 -- Índice para búsqueda por nombre de municipio
 CREATE INDEX idx_municipio_nombre ON guayaba.Municipio(nombre);
 
--- Tabla Persona 
+-- Tabla Sede
+CREATE TABLE guayaba.Sede (
+    id_sede SERIAL PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    municipio INTEGER NOT NULL,
+    coordinador INTEGER NULL,
+    FOREIGN KEY (municipio) REFERENCES guayaba.Municipio(id) ON DELETE RESTRICT
+);
+
+-- Tabla Persona
 CREATE TABLE guayaba.Persona (
     id_persona SERIAL PRIMARY KEY,
     correo VARCHAR(100) NOT NULL UNIQUE,
@@ -32,33 +41,26 @@ CREATE TABLE guayaba.Persona (
     telefono VARCHAR(15),
     rol VARCHAR(50) NOT NULL,
     detalles VARCHAR(255),
-    es_manual BOOLEAN DEFAULT FALSE
+    es_manual BOOLEAN DEFAULT FALSE,
+    id_sede INTEGER NULL,
+    FOREIGN KEY (id_sede) REFERENCES guayaba.Sede(id_sede) ON DELETE SET NULL
 );
 
 -- Índices para Persona
 CREATE INDEX idx_persona_nombre ON guayaba.Persona(nombre);
 CREATE INDEX idx_persona_correo ON guayaba.Persona(correo);
 
--- Tabla Sede
-CREATE TABLE guayaba.Sede (
-    id_sede SERIAL PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL,
-    municipio INTEGER NOT NULL,
-    coordinador INTEGER NOT NULL,
-    FOREIGN KEY (municipio) REFERENCES guayaba.Municipio(id),
-    FOREIGN KEY (coordinador) REFERENCES guayaba.Persona(id_persona)
-);
-
-ALTER TABLE guayaba.Persona
-ADD COLUMN id_sede INTEGER,
-ADD CONSTRAINT fk_persona_sede
-FOREIGN KEY (id_sede) REFERENCES guayaba.Sede(id_sede);
+-- Relación de coordinador en Sede con ON DELETE SET NULL
+ALTER TABLE guayaba.Sede 
+ADD CONSTRAINT fk_sede_coordinador 
+FOREIGN KEY (coordinador) REFERENCES guayaba.Persona(id_persona) 
+ON DELETE SET NULL;
 
 -- Tabla Edificio
 CREATE TABLE guayaba.Edificio (
     id_edificio SERIAL PRIMARY KEY,
     id_sede INTEGER NOT NULL,
-    id_titular INTEGER NOT NULL,
+    id_titular INTEGER NULL,
     nombre VARCHAR(255) NOT NULL,
     dirección VARCHAR(150),
     categoría VARCHAR(50),
@@ -66,8 +68,8 @@ CREATE TABLE guayaba.Edificio (
     area_terreno INTEGER CHECK (area_terreno > 0),
     area_construida INTEGER CHECK (area_construida > 0),
     cert_uso_suelo BOOLEAN NOT NULL,
-    FOREIGN KEY (id_sede) REFERENCES guayaba.Sede(id_sede),
-    FOREIGN KEY (id_titular) REFERENCES guayaba.Persona(id_persona)
+    FOREIGN KEY (id_sede) REFERENCES guayaba.Sede(id_sede) ON DELETE RESTRICT,
+    FOREIGN KEY (id_titular) REFERENCES guayaba.Persona(id_persona) ON DELETE SET NULL
 );
 
 -- Tabla Espacio
@@ -82,7 +84,7 @@ CREATE TABLE guayaba.Espacio (
     piso VARCHAR(20),
     capacidad SMALLINT CHECK (capacidad > 0),
     mediciónmt2 INTEGER CHECK (mediciónmt2 > 0),
-    FOREIGN KEY (id_edificio) REFERENCES guayaba.Edificio(id_edificio)
+    FOREIGN KEY (id_edificio) REFERENCES guayaba.Edificio(id_edificio) ON DELETE RESTRICT
 );
 
 -- Tabla Facultad
@@ -97,7 +99,7 @@ CREATE TABLE guayaba.Programa (
     id_facultad INTEGER NOT NULL,   
     nombre VARCHAR(255),         
     nivel VARCHAR(20),
-    FOREIGN KEY (id_facultad) REFERENCES guayaba.Facultad(id_facultad)
+    FOREIGN KEY (id_facultad) REFERENCES guayaba.Facultad(id_facultad) ON DELETE RESTRICT
 );
 
 -- Índice para búsqueda por estado de espacio
@@ -116,15 +118,15 @@ CREATE TABLE guayaba.Evento (
     hora_inicio TIME NOT NULL,
     hora_fin TIME NOT NULL,
     días VARCHAR(7),
-    FOREIGN KEY (id_espacio) REFERENCES guayaba.Espacio(id_espacio),
-    FOREIGN KEY (id_programa) REFERENCES guayaba.Programa(id_programa)  
+    FOREIGN KEY (id_espacio) REFERENCES guayaba.Espacio(id_espacio) ON DELETE RESTRICT,
+    FOREIGN KEY (id_programa) REFERENCES guayaba.Programa(id_programa) ON DELETE RESTRICT
 );
 
 -- Tabla Mantenimiento
 CREATE TABLE guayaba.Mantenimiento (
     id_mantenimiento SERIAL PRIMARY KEY,
     id_espacio INTEGER NOT NULL,
-    id_encargado INTEGER NOT NULL,
+    id_encargado INTEGER NULL,
     tipo_contrato VARCHAR(20),
     tipo VARCHAR(20),
     estado VARCHAR(20),
@@ -134,8 +136,8 @@ CREATE TABLE guayaba.Mantenimiento (
     fecha_ini TIMESTAMP NOT NULL,
     fecha_fin TIMESTAMP,
     observación TEXT,
-    FOREIGN KEY (id_espacio) REFERENCES guayaba.Espacio(id_espacio),
-    FOREIGN KEY (id_encargado) REFERENCES guayaba.Persona(id_persona)
+    FOREIGN KEY (id_espacio) REFERENCES guayaba.Espacio(id_espacio) ON DELETE RESTRICT,
+    FOREIGN KEY (id_encargado) REFERENCES guayaba.Persona(id_persona) ON DELETE SET NULL
 );
 
 -- Índice para búsqueda por prioridad en mantenimiento
