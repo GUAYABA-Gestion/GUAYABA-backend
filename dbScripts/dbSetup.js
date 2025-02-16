@@ -31,7 +31,8 @@ CREATE TABLE guayaba.Persona (
     nombre VARCHAR(255) NOT NULL,
     telefono VARCHAR(15),
     rol VARCHAR(50) NOT NULL,
-    detalles VARCHAR(255)
+    detalles VARCHAR(255),
+    es_manual BOOLEAN DEFAULT FALSE
 );
 
 -- Índices para Persona

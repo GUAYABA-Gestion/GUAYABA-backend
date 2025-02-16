@@ -58,15 +58,24 @@ export const User = {
       res.status(400).json({ error: "Error al registrar usuario" });
     }
   },
+
   getUsersData: async (req, res) => {
     try {
-      // Usuario ya validado por el middleware
+      // Consulta para obtener todos los usuarios con detalles de sede
       const users = await pool.query(
-        `SELECT id_persona, correo, nombre, rol, id_sede 
-         FROM guayaba.Persona 
-         `,
+        `SELECT 
+         p.id_persona, 
+         p.correo, 
+         p.nombre, 
+         p.telefono, 
+         p.rol, 
+         p.detalles, 
+         s.nombre AS sede_nombre,
+         p.id_sede,
+         p.es_manual
+       FROM guayaba.Persona p
+       LEFT JOIN guayaba.Sede s ON p.id_sede = s.id_sede`
       );
-
 
       if (users.rowCount === 0) {
         return res.status(404).json({ error: "Usuarios no encontrados" });
@@ -74,10 +83,11 @@ export const User = {
 
       res.json(users.rows);
     } catch (error) {
-      console.error("Error en getMe:", error);
+      console.error("Error en getUsersData:", error);
       res.status(500).json({ error: "Error interno del servidor" });
     }
   },
+
   getUserData: async (req, res) => {
     try {
       // Usuario ya validado por el middleware
@@ -88,11 +98,10 @@ export const User = {
         [req.user.userId]
       );
 
-
       if (user.rowCount === 0) {
         return res.status(404).json({ error: "Usuario no encontrado" });
       }
-      
+
       res.json(user.rows[0]);
     } catch (error) {
       console.error("Error en getMe:", error);
@@ -108,7 +117,6 @@ export const User = {
          WHERE id_persona = $1`,
         [req.body.userId]
       );
-
 
       if (user.rowCount === 0) {
         return res.status(404).json({ error: "Usuario no encontrado" });
@@ -170,33 +178,63 @@ export const User = {
   },
 
   updateUser: async (req, res) => {
-    const { id_persona, nombre, correo, telefono, rol, detalles, id_sede } =
-      req.body;
-
+    const { id_persona, nombre, correo, telefono, rol, detalles, id_sede } = req.body;
+  
     try {
       const updatePersonaQuery = `
-      UPDATE guayaba.Persona
-      SET nombre = $2, correo = $3, telefono = $4, rol = $5, detalles = $6, id_sede = $7
-      WHERE id_persona = $1;
+        UPDATE guayaba.Persona
+        SET nombre = $2, correo = $3, telefono = $4, rol = $5, detalles = $6, id_sede = $7
+        WHERE id_persona = $1
+        RETURNING *;
       `;
-
-      const values = [
-        id_persona,
-        nombre,
-        correo,
-        telefono,
-        rol,
-        detalles,
-        id_sede,
-      ];
-      await pool.query(updatePersonaQuery, values);
-
-      res.status(200).json({ message: "Cuenta actualizada exitosamente." });
+  
+      const values = [id_persona, nombre, correo, telefono, rol, detalles, id_sede];
+      const result = await pool.query(updatePersonaQuery, values);
+  
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: "Usuario no encontrado." });
+      }
+  
+      res.status(200).json(result.rows[0]); // Devuelve el usuario actualizado
     } catch (error) {
       console.error("Error al actualizar la cuenta:", error.message);
-      res
-        .status(500)
-        .json({ error: "Hubo un problema al actualizar la cuenta." });
+      res.status(500).json({ error: "Hubo un problema al actualizar la cuenta." });
+    }
+  },
+  
+
+  addUsersManual: async (req, res) => {
+    const { users } = req.body; // Array de usuarios
+    try {
+      await pool.query("BEGIN"); // Iniciar transacción
+      for (const user of users) {
+        const { nombre, correo, telefono, rol, detalles, id_sede } = user;
+        await pool.query(
+          `INSERT INTO guayaba.Persona (nombre, correo, telefono, rol, detalles, id_sede, es_manual)
+           VALUES ($1, $2, $3, $4, $5, $6, TRUE)`,
+          [nombre, correo, telefono, rol, detalles, id_sede]
+        );
+      }
+      await pool.query("COMMIT"); // Confirmar transacción
+      res.status(200).json({ message: "Usuarios añadidos exitosamente." });
+    } catch (error) {
+      await pool.query("ROLLBACK"); // Revertir transacción en caso de error
+      console.error("Error al añadir usuarios:", error.message);
+      res.status(500).json({ error: "Hubo un problema al añadir los usuarios." });
+    }
+  },
+
+  deleteUserManual: async (req, res) => {
+    const { id_persona } = req.body;
+    try {
+      await pool.query(
+        `DELETE FROM guayaba.Persona WHERE id_persona = $1 AND es_manual = TRUE`,
+        [id_persona]
+      );
+      res.status(200).json({ message: "Usuario eliminado exitosamente." });
+    } catch (error) {
+      console.error("Error al eliminar usuario:", error.message);
+      res.status(500).json({ error: "Hubo un problema al eliminar el usuario." });
     }
   },
 };
