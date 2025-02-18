@@ -5,8 +5,9 @@ export const Sede = {
   getSedes: async (req, res) => {
     try {
       const result = await pool.query(
-        `SELECT s.id_sede, s.nombre, s.municipio, s.coordinador, 
-              m.nombre AS nombre_municipio, p.nombre AS nombre_coordinador
+        `SELECT s.*, 
+              m.nombre AS nombre_municipio, 
+              p.nombre AS nombre_coordinador
         FROM guayaba.Sede s
         INNER JOIN guayaba.Municipio m ON s.municipio = m.id
         LEFT JOIN guayaba.Persona p ON s.coordinador = p.id_persona;`
@@ -84,23 +85,26 @@ export const Sede = {
 
   updateSede: async (req, res) => {
     const { id_sede, nombre, municipio, coordinador } = req.body;
-
+  
     try {
       const updateSedeQuery = `
       UPDATE guayaba.Sede
       SET nombre = $2, municipio = $3, coordinador = $4
-      WHERE id_sede = $1;
+      WHERE id_sede = $1
+      RETURNING *;
       `;
-
+  
       const values = [id_sede, nombre, municipio, coordinador];
-      await pool.query(updateSedeQuery, values);
-
-      res.status(200).json({ message: "Sede actualizada exitosamente" });
+      const result = await pool.query(updateSedeQuery, values);
+  
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: "Sede no encontrada" });
+      }
+  
+      res.status(200).json({ message: "Sede actualizada exitosamente", sede: result.rows[0] });
     } catch (error) {
       console.error("Error al actualizar la sede:", error.message);
-      res
-        .status(500)
-        .json({ error: "Hubo un problema al actualizar la sede." });
+      res.status(500).json({ error: "Hubo un problema al actualizar la sede." });
     }
   },
 };

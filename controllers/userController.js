@@ -228,20 +228,16 @@ export const User = {
         addedUsers.push(result.rows[0]);
       }
       await pool.query("COMMIT"); // Confirmar transacción
-      res
-        .status(200)
-        .json({
-          message: "Usuarios añadidos exitosamente.",
-          users: addedUsers,
-        });
+      res.status(200).json({
+        message: "Usuarios añadidos exitosamente.",
+        users: addedUsers,
+      });
     } catch (error) {
       await pool.query("ROLLBACK"); // Revertir transacción en caso de error
       console.error("Error al añadir usuarios back:", error.message);
-      res
-        .status(500)
-        .json({
-          error: error.message || "Hubo un problema al añadir los usuarios.",
-        });
+      res.status(500).json({
+        error: error.message || "Hubo un problema al añadir los usuarios.",
+      });
     }
   },
   deleteUserManual: async (req, res) => {
@@ -286,7 +282,32 @@ export const User = {
       res.json({ references });
     } catch (error) {
       console.error("Error al obtener referencias del usuario:", error.message);
-      res.status(500).json({ error: "Hubo un problema al obtener las referencias del usuario." });
+      res
+        .status(500)
+        .json({
+          error: "Hubo un problema al obtener las referencias del usuario.",
+        });
+    }
+  },
+
+  getAdmins: async (req, res) => {
+    try {
+      const result = await pool.query(
+        `SELECT id_persona, correo, nombre, rol, id_sede 
+         FROM guayaba.Persona 
+         WHERE rol IN ('admin', 'coord')`
+      );
+
+      if (result.rowCount === 0) {
+        return res
+          .status(404)
+          .json({ error: "No se encontraron administradores o coordinadores" });
+      }
+
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Error en getAdmins:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
     }
   },
 };

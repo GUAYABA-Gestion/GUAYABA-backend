@@ -7,9 +7,11 @@ import eventoRoutes from "./eventoRoutes.js";
 import edificioRoutes from "./edificioRoutes.js"
 import auditRoutes from "./auditRoutes.js"
 import alertaRoutes from "./alertaRoutes.js"
+import { getMunicipios } from "../controllers/utilsController.js";
 import { pool } from "../db.js";
 
 import { generateTestJWT } from "../controllers/utilsController.js"; // Importa la función
+import { jwtAuth } from "../middlewares/authMiddleware.js";
 
 export const Test = {
   generateTestToken: (req, res) => {
@@ -46,4 +48,6 @@ router.use("/edificios", edificioRoutes);
 router.use("/auditoria", auditRoutes)
 router.use("/evento",eventoRoutes);
 router.use("/alerta",alertaRoutes);
+router.get("/municipios", jwtAuth, getMunicipios);
+
 export default router;

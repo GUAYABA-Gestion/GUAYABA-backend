@@ -80,7 +80,7 @@ export const Edificio = {
                 e.area_construida, e.cert_uso_suelo, s.nombre AS nombre_sede, p.nombre as nombre_titular
         FROM guayaba.Edificio e
         INNER JOIN guayaba.Sede s ON e.id_sede = s.id_sede
-        INNER JOIN guayaba.Persona p ON e.id_titular = p.id_persona 
+        LEFT JOIN guayaba.Persona p ON e.id_titular = p.id_persona 
 
       `;
 
