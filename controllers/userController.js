@@ -240,6 +240,7 @@ export const User = {
       });
     }
   },
+  
   deleteUserManual: async (req, res) => {
     const { id_persona } = req.body;
     try {

@@ -1,19 +1,13 @@
 import { Router } from "express";
 import { Edificio } from "../controllers/edificioController.js";
-import {
-  jwtAuth,
-  validateGoogleTokenFromGet,
-} from "../middlewares/authMiddleware.js";
+import { jwtAuth } from "../middlewares/authMiddleware.js";
 
 const router = Router();
 
-// router.get("/", validateGoogleTokenFromGet, Sede.getSedes);
-// router.get("/:id", jwtAuth, Sede.getSedeById);
-// router.post("/create-sede", jwtAuth, Sede.createSede);
-// router.post("/update-sede", jwtAuth, Sede.updateSede);
-
-router.post('/create-edificio', jwtAuth, Edificio.createEdificio);
-
-router.get('/', jwtAuth, Edificio.getEdificios);
+router.get("/", jwtAuth, Edificio.getEdificios);
+router.post("/create-edificio", jwtAuth, Edificio.createEdificio);
+router.put("/update-edificio", jwtAuth, Edificio.updateEdificio);
+router.post("/addEdificiosManual", jwtAuth, Edificio.addEdificiosManual);
+router.delete("/delete/:id", jwtAuth, Edificio.deleteEdificio);
 
 export default router;
