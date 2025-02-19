@@ -151,19 +151,72 @@ export const Espacio = {
     }
   },
 
-  delete: async (req, res) => {
+
+  addEspaciosManual: async (req, res) => {
+    const { espacios } = req.body; // Array de eespacios
     try {
-      const { id } = req.body;
-      const { rows } = await pool.query(
-        'DELETE FROM guayaba.Espacio WHERE id_espacio = $1 RETURNING *',
-        [id]
-      );
+      await pool.query("BEGIN"); // Iniciar transacción
+      const addedEspacios = [];
+      for (const espacio of espacios) {
+        const {
+          id_edificio,
+          nombre,
+          estado,
+          clasificacion,
+          uso,
+          tipo,
+          piso,
+          capacidad,
+          mediciónmt2
+        } = espacio;
 
-      if (rows.length === 0) {
-        return res.status(404).json({ success: false, error: "Espacio no encontrado" });
+        const result = await pool.query(
+          `INSERT INTO guayaba.Espacio (id_edificio, nombre, estado, clasificacion, uso, tipo, piso, capacidad, mediciónmt2)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+          [
+            id_edificio,
+            nombre,
+            estado,
+            clasificacion,
+            uso,
+            tipo,
+            piso,
+            capacidad,
+            mediciónmt2
+          ]
+        );
+
+        addedEspacios.push(result.rows[0]);
       }
+      await pool.query("COMMIT"); // Confirmar transacción
+      res.status(200).json({
+        message: "Espacios añadidos exitosamente.",
+        espacios: addedEspacios,
+      });
+    } catch (error) {
+      await pool.query("ROLLBACK"); // Revertir transacción en caso de error
+      console.error("Error al añadir espacios:", error.message);
+      res.status(500).json({
+        error: error.message || "Hubo un problema al añadir los espacios.",
+      });
+    }
+  },
 
-      res.status(200).json({ success: true, data: rows[0] });
+  delete: async (req, res) => {
+    const { id } = req.params;
+    try {
+      const deleteQuery = `DELETE FROM guayaba.Espacio WHERE id_espacio = $1 RETURNING *;`;
+      const result = await pool.query(deleteQuery, [id]);
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: "Espacio no encontrado" });
+      }
+      res
+        .status(200)
+        .json({
+          message: "Espacio eliminado exitosamente",
+          espacio: result.rows[0],
+        });
     } catch (error) {
       console.error("Error eliminando espacio:", error);
       res.status(500).json({ success: false, error: "Error al eliminar espacio" });

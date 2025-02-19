@@ -9,6 +9,7 @@ router.get("/getBySede", jwtAuth, Espacio.getBySede);
 router.post("/getBy", jwtAuth, Espacio.getBy);
 router.post("/create", jwtAuth, Espacio.create);
 router.put("/update", jwtAuth, Espacio.update);
-router.put("/delete", jwtAuth, Espacio.delete);
+router.post("/addEspaciosManual", jwtAuth, Espacio.addEspaciosManual);
+router.put("/delete/:id", jwtAuth, Espacio.delete);
 
 export default router;
