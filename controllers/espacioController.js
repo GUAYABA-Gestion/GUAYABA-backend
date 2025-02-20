@@ -2,6 +2,29 @@ import { pool } from "../db.js";
 import jwt from "jsonwebtoken"; // falta implementacion de jwt en reqs
 
 export const Espacio = {
+
+  getByEdificios: async (req, res) => {
+    const { ids_edificios } = req.body;
+  
+    if (!Array.isArray(ids_edificios) || ids_edificios.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Debe proporcionar una lista de IDs de edificios válida."
+      });
+    }
+  
+    try {
+      const placeholders = ids_edificios.map((_, index) => `$${index + 1}`).join(', ');
+      const query = `SELECT * FROM guayaba.Espacio WHERE id_edificio IN (${placeholders})`;
+      const { rows } = await pool.query(query, ids_edificios);
+  
+      res.status(200).json({ success: true, data: rows });
+    } catch (error) {
+      console.error("Error obteniendo espacios por edificios:", error);
+      res.status(500).json({ success: false, error: "Error interno del servidor" });
+    }
+  },
+
   getAll: async (req, res) => {
     try {
       const { rows } = await pool.query('SELECT * FROM guayaba.Espacio');
