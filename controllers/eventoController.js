@@ -2,6 +2,29 @@ import { pool } from "../db.js";
 import jwt from "jsonwebtoken"; // falta implementacion de jwt en reqs
 
 export const Evento = {
+
+  getByEspacios: async (req, res) => {
+    const { ids_espacios } = req.body;
+  
+    if (!Array.isArray(ids_espacios) || ids_espacios.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Debe proporcionar una lista de IDs de espacios válida."
+      });
+    }
+  
+    try {
+      const placeholders = ids_espacios.map((_, index) => `$${index + 1}`).join(', ');
+      const query = `SELECT * FROM guayaba.Evento WHERE id_espacio IN (${placeholders})`;
+      const { rows } = await pool.query(query, ids_espacios);
+  
+      res.status(200).json({ success: true, data: rows });
+    } catch (error) {
+      console.error("Error obteniendo eventos por espacios:", error);
+      res.status(500).json({ success: false, error: "Error interno del servidor" });
+    }
+  },
+
   getAll: async (req, res) => {
     try {
       const { rows } = await pool.query('SELECT * FROM guayaba.Evento');

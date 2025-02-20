@@ -1,25 +1,13 @@
 import { pool } from "../db.js";
 import jwt from "jsonwebtoken"; // falta implementacion de jwt en reqs
 
-
 export const Mantenimiento = {
 
-
-  pingtest: async(req,res) => {
-        try {
-          const result = await pool.query("SELECT NOW()");
-          res.json(result.rows[0]);
-        } catch (error) {
-          console.error("Error en /ping:", error.message);
-          res.status(500).json({ error: "Error al consultar la base de datos" });
-        }
-      },
-      
   create: async (req, res) => {
     try {
       const requiredFields = ['id_espacio', 'id_encargado', 'Estado', 'tipo', 'Prioridad'];
       const missingFields = requiredFields.filter(field => !req.body[field]);
-      
+
       if (missingFields.length > 0) {
         return res.status(400).json({
           success: false,
@@ -58,7 +46,7 @@ export const Mantenimiento = {
   getAll: async (req, res) => {
     try {
       const { rows } = await pool.query('SELECT * FROM guayaba.Mantenimiento');
-      res.status(200).json(rows );
+      res.status(200).json(rows);
     } catch (error) {
       console.error("Error obteniendo Mantenimientos:", error);
       res.status(500).json({ success: false, error: "Error interno del servidor" });
@@ -72,9 +60,8 @@ export const Mantenimiento = {
         'SELECT * FROM guayaba.Mantenimiento WHERE id_mantenimiento = $1',
         [id]
       );
-      
+
       res.status(200).json(rows);
-      //res.status(200).json(rows);
     } catch (error) {
       console.error("Error obteniendo mantenimientos:", error);
       res.status(500).json({ success: false, error: "Error al obtener historial de mantenimiento" });
@@ -87,9 +74,9 @@ export const Mantenimiento = {
       const { nuevoEstado } = req.body;
 
       if (!nuevoEstado) {
-        return res.status(400).json({ 
-          success: false, 
-          error: "Se requiere el campo 'nuevoEstado'" 
+        return res.status(400).json({
+          success: false,
+          error: "Se requiere el campo 'nuevoEstado'"
         });
       }
 
@@ -128,6 +115,28 @@ export const Mantenimiento = {
     } catch (error) {
       console.error("Error eliminando mantenimiento:", error);
       res.status(500).json({ success: false, error: "Error al eliminar registro de mantenimiento" });
+    }
+  },
+
+  getByEspacios: async (req, res) => {
+    const { ids_espacios } = req.body;
+
+    if (!Array.isArray(ids_espacios) || ids_espacios.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Debe proporcionar una lista de IDs de espacios válida."
+      });
+    }
+
+    try {
+      const placeholders = ids_espacios.map((_, index) => `$${index + 1}`).join(', ');
+      const query = `SELECT * FROM guayaba.Mantenimiento WHERE id_espacio IN (${placeholders})`;
+      const { rows } = await pool.query(query, ids_espacios);
+
+      res.status(200).json({ success: true, data: rows });
+    } catch (error) {
+      console.error("Error obteniendo mantenimientos por espacios:", error);
+      res.status(500).json({ success: false, error: "Error interno del servidor" });
     }
   }
 };
