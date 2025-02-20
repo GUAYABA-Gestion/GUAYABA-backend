@@ -42,11 +42,11 @@ router.get("/ping", async (req, res) => {
 router.use("/user", userRoutes);
 router.use("/sedes", sedeRoutes);
 //WIP
-router.use("/espacio", espacioRoutes);
-router.use("/mantenimiento", mantenimientoRoutes);
+router.use("/espacios", espacioRoutes);
+router.use("/mantenimientos", mantenimientoRoutes);
 router.use("/edificios", edificioRoutes);
 router.use("/auditoria", auditRoutes)
-router.use("/evento",eventoRoutes);
+router.use("/eventos",eventoRoutes);
 router.use("/alerta",alertaRoutes);
 router.get("/municipios", jwtAuth, getMunicipios);
 
