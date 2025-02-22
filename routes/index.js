@@ -7,6 +7,7 @@ import eventoRoutes from "./eventoRoutes.js";
 import edificioRoutes from "./edificioRoutes.js"
 import auditRoutes from "./auditRoutes.js"
 import alertaRoutes from "./alertaRoutes.js"
+import contactRoutes from "./contactRoutes.js"
 import { getMunicipios } from "../controllers/utilsController.js";
 import { pool } from "../db.js";
 
@@ -48,6 +49,7 @@ router.use("/edificios", edificioRoutes);
 router.use("/auditoria", auditRoutes)
 router.use("/eventos",eventoRoutes);
 router.use("/alerta",alertaRoutes);
+router.use("/contact",contactRoutes);
 router.get("/municipios", jwtAuth, getMunicipios);
 
 export default router;
