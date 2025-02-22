@@ -2,22 +2,21 @@ import { pool } from "../db.js";
 import jwt from "jsonwebtoken"; // falta implementacion de jwt en reqs
 
 export const Espacio = {
-
   getByEdificios: async (req, res) => {
     const { ids_edificios } = req.body;
-  
+
     if (!Array.isArray(ids_edificios) || ids_edificios.length === 0) {
       return res.status(400).json({
         success: false,
         error: "Debe proporcionar una lista de IDs de edificios válida."
       });
     }
-  
+
     try {
       const placeholders = ids_edificios.map((_, index) => `$${index + 1}`).join(', ');
       const query = `SELECT * FROM guayaba.Espacio WHERE id_edificio IN (${placeholders})`;
       const { rows } = await pool.query(query, ids_edificios);
-  
+
       res.status(200).json({ success: true, data: rows });
     } catch (error) {
       console.error("Error obteniendo espacios por edificios:", error);
@@ -25,158 +24,144 @@ export const Espacio = {
     }
   },
 
-  getAll: async (req, res) => {
+  getById: async (req, res) => {
+    const { id } = req.params;
+
     try {
-      const { rows } = await pool.query('SELECT * FROM guayaba.Espacio');
-      res.status(200).json({ success: true, data: rows });
+      const query = `SELECT * FROM guayaba.Espacio WHERE id_espacio = $1`;
+      const { rows } = await pool.query(query, [id]);
+
+      if (rows.length === 0) {
+        return res.status(404).json({ error: "Espacio no encontrado" });
+      }
+
+      res.status(200).json(rows[0]);
     } catch (error) {
-      console.error("Error obteniendo espacios:", error);
-      res.status(500).json({ success: false, error: "Error interno del servidor" });
+      console.error("Error al obtener el espacio:", error.message);
+      res.status(500).json({ error: "Error al obtener el espacio." });
     }
   },
 
-  getBySede: async (req, res) => {
-    const {id_sede} = req.body
+  createEspacio: async (req, res) => {
+    const {
+      id_edificio,
+      nombre,
+      estado,
+      clasificacion,
+      uso,
+      tipo,
+      piso,
+      capacidad,
+      mediciónmt2
+    } = req.body;
 
-    try {
-      const { rows } = await pool.query(
-        `SELECT e.*
-        FROM guayaba.Espacio e
-        INNER JOIN guayaba.Edificio b ON e.edificio_id = b.id_edificio
-        WHERE b.id_sede = $1`, [id_sede]);
-    } catch (error) {
-      console.error("Error en consulta filtrada:", error);
-      res.status(500).json({
-          success: false,
-          error: "Error al buscar espacios",
-          details: error.message
-      });
-   }
-},
-
-  getBy: async (req, res) => {
-    try {
-        const validFilters = ['id_espacio', 'id_edificio', 'tipo', 'estado', 'Facultad'];
-        
-        // Combinar query y body
-        const requestData = { ...req.query, ...req.body };
-        
-        const filters = Object.keys(requestData)
-            .filter(key => validFilters.includes(key) && requestData[key] !== undefined)
-            .reduce((obj, key) => {
-                obj[key] = typeof requestData[key] === 'string' 
-                         ? requestData[key].trim() 
-                         : requestData[key];
-                return obj;
-            }, {});
-
-        if (!Object.keys(filters).length) {
-            return res.status(400).json({
-                success: false,
-                error: "Debe proporcionar al menos un filtro válido",
-                validFilters: validFilters
-            });
-        }
-
-        const whereClauses = Object.keys(filters)
-            .map((key, index) => `"${key}" = $${index + 1}`)
-            .join(' AND ');
-
-        const { rows } = await pool.query(
-            `SELECT * FROM guayaba.Espacio WHERE ${whereClauses}`,
-            Object.values(filters)
-        );
-
-        res.status(rows.length ? 200 : 404).json( rows);
-        
-    } catch (error) {
-        console.error("Error en consulta filtrada:", error);
-        res.status(500).json({
-            success: false,
-            error: "Error al buscar espacios",
-            details: error.message
-        });
+    if (
+      !id_edificio ||
+      !nombre ||
+      !estado ||
+      !clasificacion ||
+      !uso ||
+      !tipo ||
+      !piso ||
+      !capacidad ||
+      !mediciónmt2
+    ) {
+      return res.status(400).json({ error: "Todos los campos son requeridos." });
     }
-},
 
-  create: async (req, res) => {
     try {
-      const requiredFields = ["id_edificio", "nombre", "estado", "clasificacion", "uso", "tipo", "piso", "capacidad", "mediciónmt2"];
-      const missingFields = requiredFields.filter(field => !req.body[field]);
-      //falta verificacion de FK en los parametros
-      if (missingFields.length > 0) {
-        return res.status(400).json({
-          success: false,
-          error: `Campos requeridos faltantes: ${missingFields.join(', ')}`
+      const checkResult = await pool.query(
+        `SELECT * FROM guayaba.Espacio WHERE nombre = $1`,
+        [nombre]
+      );
+
+      if (checkResult.rowCount > 0) {
+        return res.json({
+          message: "El espacio ya está registrado.",
+          registered: true,
         });
       }
 
-      const { rows } = await pool.query(
-        `INSERT INTO guayaba.Espacio
-        (id_edificio, nombre, estado, clasificacion, uso, tipo, piso, capacidad, mediciónmt2) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
-        RETURNING *`,
+      const espacioResult = await pool.query(
+        `INSERT INTO guayaba.Espacio (id_edificio, nombre, estado, clasificacion, uso, tipo, piso, capacidad, mediciónmt2)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id_espacio`,
         [
-          req.body.id_edificio,
-          req.body.nombre || null,
-          req.body.estado || null,
-          req.body.clasificacion || null,
-          req.body.uso || null ,
-          req.body.tipo || null,
-          req.body.piso || null ,
-          req.body.capacidad || null,
-          req.body.mediciónmt2 || null
+          id_edificio,
+          nombre,
+          estado,
+          clasificacion,
+          uso,
+          tipo,
+          piso,
+          capacidad,
+          mediciónmt2
         ]
       );
 
-      res.status(201).json({ success: true, data: rows[0] });
-    } catch (error) {
-      console.error("Error creando espacio:", error);
-      res.status(500).json({ success: false, error: "Error al crear espacio" });
+      if (espacioResult.rowCount === 0) {
+        throw new Error("No se pudo crear el espacio.");
+      }
+
+      return res.json({
+        message: "Espacio creado con éxito.",
+        registered: true,
+        espacio: espacioResult.rows[0],
+      });
+    } catch (err) {
+      console.error("Error al crear el espacio.", err.message);
+      res.status(500).json({ error: "Error al crear el espacio." });
     }
   },
 
-  update: async (req, res) => {
+  updateEspacio: async (req, res) => {
+    const {
+      id_espacio,
+      id_edificio,
+      nombre,
+      estado,
+      clasificacion,
+      uso,
+      tipo,
+      piso,
+      capacidad,
+      mediciónmt2
+    } = req.body;
+
     try {
-      const { id } = req.body;
-      const allowedFields = ['nombre', 'estado', 'tipo', 'capacidad', 'mediciónmt2'];
-      const updates = Object.keys(req.body)
-        .filter(key => allowedFields.includes(key))
-        .reduce((obj, key) => {
-          obj[key] = req.body[key];
-          return obj;
-        }, {});
+      const updateEspacioQuery = `
+          UPDATE guayaba.Espacio
+          SET id_edificio = $2, nombre = $3, estado = $4, clasificacion = $5, uso = $6, tipo = $7, piso = $8, capacidad = $9, mediciónmt2 = $10
+          WHERE id_espacio = $1
+          RETURNING *;
+          `;
 
-      if (Object.keys(updates).length === 0) {
-        return res.status(400).json({ success: false, error: "No se proporcionaron campos válidos para actualizar" });
+      const values = [
+        id_espacio,
+        id_edificio,
+        nombre,
+        estado,
+        clasificacion,
+        uso,
+        tipo,
+        piso,
+        capacidad,
+        mediciónmt2
+      ];
+      const result = await pool.query(updateEspacioQuery, values);
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: "Espacio no encontrado" });
       }
 
-      const setClauses = Object.keys(updates)
-        .map((key, index) => `"${key}" = $${index + 1}`)
-        .join(', ');
-
-      const { rows } = await pool.query(
-        `UPDATE guayaba.Espacio
-        SET ${setClauses} 
-        WHERE id_espacio = $${Object.keys(updates).length + 1} 
-        RETURNING *`,
-        [...Object.values(updates), id]
-      );
-
-      if (rows.length === 0) {
-        return res.status(404).json({ success: false, error: "Espacio no encontrado" });
-      }
-
-      res.status(200).json({ success: true, data: rows[0] });
+      res.status(200).json({ message: "Espacio actualizado exitosamente", espacio: result.rows[0] });
     } catch (error) {
-      console.error("Error actualizando espacio:", error);
-      res.status(500).json({ success: false, error: "Error al actualizar espacio" });
+      console.error("Error al actualizar el espacio:", error.message);
+      res.status(500).json({ error: "Hubo un problema al actualizar el espacio." });
     }
   },
-
 
   addEspaciosManual: async (req, res) => {
-    const { espacios } = req.body; // Array de eespacios
+    const { espacios } = req.body; // Array de espacios
     try {
       await pool.query("BEGIN"); // Iniciar transacción
       const addedEspacios = [];
@@ -225,8 +210,9 @@ export const Espacio = {
     }
   },
 
-  delete: async (req, res) => {
+  deleteEspacio: async (req, res) => {
     const { id } = req.params;
+
     try {
       const deleteQuery = `DELETE FROM guayaba.Espacio WHERE id_espacio = $1 RETURNING *;`;
       const result = await pool.query(deleteQuery, [id]);
@@ -234,12 +220,8 @@ export const Espacio = {
       if (result.rowCount === 0) {
         return res.status(404).json({ error: "Espacio no encontrado" });
       }
-      res
-        .status(200)
-        .json({
-          message: "Espacio eliminado exitosamente",
-          espacio: result.rows[0],
-        });
+
+      res.status(200).json({ message: "Espacio eliminado exitosamente", espacio: result.rows[0] });
     } catch (error) {
       console.error("Error eliminando espacio:", error);
       res.status(500).json({ success: false, error: "Error al eliminar espacio" });

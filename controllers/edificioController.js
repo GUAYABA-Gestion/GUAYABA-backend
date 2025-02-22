@@ -243,4 +243,42 @@ export const Edificio = {
       }
     }
   },
+
+  getEdificioById: async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const query = `
+        SELECT 
+          e.id_edificio,
+          e.nombre,
+          e.dirección,
+          e.id_sede,
+          e.categoría,
+          e.propiedad,
+          e.area_terreno,
+          e.area_construida,
+          e.cert_uso_suelo,
+          e.id_titular,
+          p.correo AS correo_titular
+        FROM 
+          guayaba.Edificio e
+        LEFT JOIN 
+          guayaba.Persona p ON e.id_titular = p.id_persona
+        WHERE 
+          e.id_edificio = $1;
+      `;
+      const { rows } = await pool.query(query, [id]);
+
+      if (rows.length === 0) {
+        return res.status(404).json({ error: "Edificio no encontrado" });
+      }
+
+      res.status(200).json(rows[0]);
+    } catch (error) {
+      console.error("Error al obtener el edificio:", error.message);
+      res.status(500).json({ error: "Error al obtener el edificio." });
+    }
+  },
+
 };

@@ -4,12 +4,11 @@ import { jwtAuth } from "../middlewares/authMiddleware.js";
 
 const router = Router();
 
-router.get("/", jwtAuth, Espacio.getAll);
-router.post("/by-sede", jwtAuth, Espacio.getBySede);
 router.post("/by-edificios", jwtAuth, Espacio.getByEdificios);
-router.post("/create", jwtAuth, Espacio.create);
-router.put("/update", jwtAuth, Espacio.update);
+router.get("/:id", jwtAuth, Espacio.getById);
+router.post("/create-espacio", jwtAuth, Espacio.createEspacio);
+router.put("/update-espacio", jwtAuth, Espacio.updateEspacio);
 router.post("/addEspaciosManual", jwtAuth, Espacio.addEspaciosManual);
-router.delete("/delete", jwtAuth, Espacio.delete);
+router.delete("/delete/:id", jwtAuth, Espacio.deleteEspacio);
 
 export default router;
