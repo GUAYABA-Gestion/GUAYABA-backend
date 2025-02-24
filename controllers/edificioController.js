@@ -217,25 +217,9 @@ export const Edificio = {
       propiedad,
       area_terreno,
       area_construida,
-      cert_uso_suelo,
+      cert_uso_suelo
     } = req.body;
 
-    if (
-      !id_edificio ||
-      !id_sede ||
-      !id_titular ||
-      !nombre ||
-      !dirección ||
-      !categoría ||
-      !propiedad ||
-      !area_terreno ||
-      !area_construida ||
-      !cert_uso_suelo
-    ) {
-      return res
-        .status(400)
-        .json({ error: "Todos los campos son requeridos." });
-    }
 
     try {
       await pool.query("BEGIN"); // Iniciar transacción
