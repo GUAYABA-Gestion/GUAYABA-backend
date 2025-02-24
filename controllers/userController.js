@@ -187,16 +187,14 @@ export const User = {
   },
 
   updateUser: async (req, res) => {
-    const { id_persona, nombre, correo, telefono, rol, detalles, id_sede } =
-      req.body;
+    const { id_persona, nombre, correo, telefono, rol, detalles, id_sede } = req.body;
 
-    console.log(req.body);
     try {
       await pool.query("BEGIN"); // Iniciar transacción
 
       // Establecer el id_persona en la sesión de la base de datos
       await pool.query(`SET LOCAL app.current_user_id = '${id_persona}'`);
-      
+
       const updatePersonaQuery = `
         UPDATE guayaba.Persona
         SET nombre = $2, correo = $3, telefono = $4, rol = $5, detalles = $6, id_sede = $7
@@ -225,10 +223,25 @@ export const User = {
       res.status(200).json(result.rows[0]); // Devuelve el usuario actualizado
     } catch (error) {
       await pool.query("ROLLBACK"); // Revertir transacción en caso de error
-      console.error("Error al actualizar la cuenta:", error.message);
-      res
-        .status(500)
-        .json({ error: "Hubo un problema al actualizar la cuenta." });
+
+      // Manejo de errores específicos
+      if (error.code === '23505') {
+        // Violación de restricción de unicidad
+        res.status(400).json({ error: "El correo ya está registrado." });
+      } else if (error.code === '23503') {
+        // Violación de restricción de clave foránea
+        res.status(400).json({ error: "ID de sede no válido." });
+      } else if (error.code === '23502') {
+        // Violación de restricción de no nulo
+        res.status(400).json({ error: "Todos los campos son requeridos." });
+      } else if (error.code === '23514') {
+        // Violación de restricción de verificación
+        res.status(400).json({ error: "Violación de restricción de verificación." });
+      } else {
+        // Otros errores
+        console.error("Error al actualizar la cuenta:", error.message);
+        res.status(500).json({ error: "Hubo un problema al actualizar la cuenta." });
+      }
     }
   },
 
@@ -259,10 +272,27 @@ export const User = {
       });
     } catch (error) {
       await pool.query("ROLLBACK"); // Revertir transacción en caso de error
-      console.error("Error al añadir usuarios back:", error.message);
-      res.status(500).json({
-        error: error.message || "Hubo un problema al añadir los usuarios.",
-      });
+
+      // Manejo de errores específicos
+      if (error.code === '23505') {
+        // Violación de restricción de unicidad
+        res.status(400).json({ error: "Alguno de los correos ya está registrado" });
+      } else if (error.code === '23503') {
+        // Violación de restricción de clave foránea
+        res.status(400).json({ error: "Alguna de las sedes no es válida" });
+      } else if (error.code === '23502') {
+        // Violación de restricción de no nulo
+        res.status(400).json({ error: "Todos los campos son requeridos." });
+      } else if (error.code === '23514') {
+        // Violación de restricción de verificación
+        res.status(400).json({ error: "Violación de restricción de verificación." });
+      } else {
+        // Otros errores
+        console.error("Error al añadir usuarios:", error.message);
+        res.status(500).json({
+          error: error.message || "Hubo un problema al añadir los usuarios.",
+        });
+      }
     }
   },
 
