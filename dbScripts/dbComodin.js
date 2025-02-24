@@ -1,9 +1,7 @@
 import { query } from "../utils/dbUtils.js";
 
 const anyQuery = `
-BEGIN;
-SELECT * FROM guayaba.mantenimiento;
-COMMIT;
+SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') AT TIME ZONE 'UTC-5' AS current_timestamp;
 `;
 
 const runQuery = async () => {
@@ -14,10 +12,6 @@ const runQuery = async () => {
     const result = await query(anyQuery);
 
     // Log the raw result for inspection
-    //console.log("Resultado crudo:", result);
-
-    // If using pg library, the rows are in result.rows
-    // (Adjust this based on your query utility's response structure)
     console.log("Registros encontrados:", result.rows);
 
     console.log("Query ejecutada correctamente.");

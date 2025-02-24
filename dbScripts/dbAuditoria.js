@@ -48,7 +48,7 @@ BEGIN
     VALUES (
         TG_TABLE_NAME,             -- Nombre de la tabla afectada
         TG_OP,                     -- Operación (INSERT, UPDATE, DELETE)
-        CURRENT_TIMESTAMP,         -- Timestamp actual
+       (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') AT TIME ZONE 'UTC-5',         -- Timestamp actual
         CASE WHEN TG_OP IN ('UPDATE', 'DELETE') THEN row_to_json(OLD) ELSE NULL END, -- Datos anteriores
         CASE WHEN TG_OP IN ('INSERT', 'UPDATE') THEN row_to_json(NEW) ELSE NULL END,  -- Datos nuevos
         v_id_persona               -- ID de la persona que realizó la operación
