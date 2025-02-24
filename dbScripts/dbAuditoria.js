@@ -21,7 +21,8 @@ CREATE TABLE guayaba.Auditoria (
     operacion VARCHAR(10) NOT NULL CHECK (operacion IN ('INSERT', 'UPDATE', 'DELETE')),
     fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     datos_anteriores JSONB,
-    datos_nuevos JSONB
+    datos_nuevos JSONB,
+    id_persona INTEGER -- Nueva columna para el ID de la persona
 );
 
 -- Eliminar función de auditoría si ya existe
@@ -30,20 +31,27 @@ DROP FUNCTION IF EXISTS guayaba.fn_auditoria();
 -- Crear función de auditoría
 CREATE OR REPLACE FUNCTION guayaba.fn_auditoria()
 RETURNS TRIGGER AS $$
+DECLARE
+    v_id_persona INTEGER;
 BEGIN
+    -- Obtener el id_persona de la sesión
+    v_id_persona := current_setting('app.current_user_id', true)::INTEGER;
+
     INSERT INTO guayaba.Auditoria (
         tabla_afectada,
         operacion,
         fecha_hora,
         datos_anteriores,
-        datos_nuevos
+        datos_nuevos,
+        id_persona
     )
     VALUES (
         TG_TABLE_NAME,             -- Nombre de la tabla afectada
         TG_OP,                     -- Operación (INSERT, UPDATE, DELETE)
         CURRENT_TIMESTAMP,         -- Timestamp actual
         CASE WHEN TG_OP IN ('UPDATE', 'DELETE') THEN row_to_json(OLD) ELSE NULL END, -- Datos anteriores
-        CASE WHEN TG_OP IN ('INSERT', 'UPDATE') THEN row_to_json(NEW) ELSE NULL END  -- Datos nuevos
+        CASE WHEN TG_OP IN ('INSERT', 'UPDATE') THEN row_to_json(NEW) ELSE NULL END,  -- Datos nuevos
+        v_id_persona               -- ID de la persona que realizó la operación
     );
     RETURN NEW;
 END;
@@ -88,7 +96,6 @@ FOR EACH ROW
 EXECUTE FUNCTION guayaba.fn_auditoria();
 
 COMMIT;
-
 `;
 
 const auditDB = async () => {

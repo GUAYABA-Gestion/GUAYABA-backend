@@ -75,7 +75,7 @@ export const jwtAuth = async (req, res, next) => {
     const user = await pool.query(
       `SELECT id_persona, rol FROM guayaba.Persona 
        WHERE id_persona = $1`,
-      [decoded.userId]
+      [decoded.id_persona]
     );
 
     // Si el usuario no existe, devolver error

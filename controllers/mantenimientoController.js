@@ -1,11 +1,10 @@
 import { pool } from "../db.js";
-import jwt from "jsonwebtoken"; // falta implementacion de jwt en reqs
 
 export const Mantenimiento = {
 
   create: async (req, res) => {
     try {
-      const requiredFields = ['id_espacio', 'id_encargado', 'Estado', 'tipo', 'Prioridad'];
+      const requiredFields = ['id_espacio', 'id_encargado', 'estado', 'tipo', 'prioridad'];
       const missingFields = requiredFields.filter(field => !req.body[field]);
 
       if (missingFields.length > 0) {
@@ -15,8 +14,12 @@ export const Mantenimiento = {
         });
       }
 
+      await pool.query('BEGIN'); // Iniciar transacción
+
+      // Establecer el id_persona en la sesión de la base de datos
+      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+
       const { rows } = await pool.query(
-        //falta validacion de FK
         `INSERT INTO guayaba.Mantenimiento
         (id_espacio, id_encargado, tipo_contrato, tipo, estado, necesidad, prioridad, detalle, fecha_ini, fecha_fin, observación) 
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
@@ -36,8 +39,11 @@ export const Mantenimiento = {
         ]
       );
 
+      await pool.query('COMMIT'); // Confirmar transacción
+
       res.status(201).json({ success: true, data: rows[0] });
     } catch (error) {
+      await pool.query('ROLLBACK'); // Revertir transacción en caso de error
       console.error("Error creando mantenimiento:", error);
       res.status(500).json({ success: false, error: "Error al crear mantenimiento" });
     }
@@ -70,8 +76,7 @@ export const Mantenimiento = {
 
   updateEstado: async (req, res) => {
     try {
-      const { id } = req.body;
-      const { nuevoEstado } = req.body;
+      const { id, nuevoEstado } = req.body;
 
       if (!nuevoEstado) {
         return res.status(400).json({
@@ -80,20 +85,29 @@ export const Mantenimiento = {
         });
       }
 
+      await pool.query('BEGIN'); // Iniciar transacción
+
+      // Establecer el id_persona en la sesión de la base de datos
+      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+
       const { rows } = await pool.query(
         `UPDATE guayaba.Mantenimiento 
-        SET Estado = $1, fecha_fin = $2 
+        SET estado = $1, fecha_fin = $2 
         WHERE id_mantenimiento = $3 
         RETURNING *`,
         [nuevoEstado, nuevoEstado === 'Completo' ? new Date() : null, id]
       );
 
       if (rows.length === 0) {
+        await pool.query('ROLLBACK'); // Revertir transacción
         return res.status(404).json({ success: false, error: "Registro de mantenimiento no encontrado" });
       }
 
+      await pool.query('COMMIT'); // Confirmar transacción
+
       res.status(200).json({ success: true, data: rows[0] });
     } catch (error) {
+      await pool.query('ROLLBACK'); // Revertir transacción en caso de error
       console.error("Error actualizando estado:", error);
       res.status(500).json({ success: false, error: "Error al actualizar estado de mantenimiento" });
     }
@@ -102,17 +116,27 @@ export const Mantenimiento = {
   delete: async (req, res) => {
     try {
       const { id } = req.body;
+
+      await pool.query('BEGIN'); // Iniciar transacción
+
+      // Establecer el id_persona en la sesión de la base de datos
+      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+
       const { rows } = await pool.query(
         'DELETE FROM guayaba.Mantenimiento WHERE id_mantenimiento = $1 RETURNING *',
         [id]
       );
 
       if (rows.length === 0) {
+        await pool.query('ROLLBACK'); // Revertir transacción
         return res.status(404).json({ success: false, error: "Registro de mantenimiento no encontrado" });
       }
 
+      await pool.query('COMMIT'); // Confirmar transacción
+
       res.status(200).json({ success: true, data: rows[0] });
     } catch (error) {
+      await pool.query('ROLLBACK'); // Revertir transacción en caso de error
       console.error("Error eliminando mantenimiento:", error);
       res.status(500).json({ success: false, error: "Error al eliminar registro de mantenimiento" });
     }

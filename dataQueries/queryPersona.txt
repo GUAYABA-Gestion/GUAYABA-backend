@@ -1,5 +1,9 @@
 BEGIN;
 
+-- Configurar valor inicial para app.current_user_id
+SET LOCAL app.current_user_id = '-1';
+
+
 INSERT INTO guayaba.Persona ("nombre", "correo", "telefono", "rol", "detalles", "es_manual") 
 VALUES 
 ('Von Hardie', 'von.hardie@yahoo.com', '3183121674', 'user', 'Ostendit; iudicia rerum in sensibus ponit, quibus si semel aliquid.', TRUE),

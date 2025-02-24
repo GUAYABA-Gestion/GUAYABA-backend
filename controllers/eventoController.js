@@ -96,6 +96,11 @@ export const Evento = {
         });
       }
 
+      await pool.query('BEGIN'); // Iniciar transacción
+
+      // Establecer el id_persona en la sesión de la base de datos
+      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+
       const { rows } = await pool.query(
         `INSERT INTO guayaba.Evento (id_espacio, tipo, nombre, descripción, id_programa, fecha_inicio, fecha_fin, hora_inicio, hora_fin, días) 
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
@@ -114,8 +119,11 @@ export const Evento = {
         ]
       );
 
+      await pool.query('COMMIT'); // Confirmar transacción
+
       res.status(201).json({ success: true, data: rows[0] });
     } catch (error) {
+      await pool.query('ROLLBACK'); // Revertir transacción en caso de error
       console.error("Error creando evento:", error);
       res.status(500).json({ success: false, error: "Error al crear evento" });
     }
@@ -136,6 +144,11 @@ export const Evento = {
         return res.status(400).json({ success: false, error: "No se proporcionaron campos válidos para actualizar" });
       }
 
+      await pool.query('BEGIN'); // Iniciar transacción
+
+      // Establecer el id_persona en la sesión de la base de datos
+      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+
       const setClauses = Object.keys(updates)
         .map((key, index) => `"${key}" = $${index + 1}`)
         .join(', ');
@@ -149,11 +162,15 @@ export const Evento = {
       );
 
       if (rows.length === 0) {
+        await pool.query('ROLLBACK'); // Revertir transacción
         return res.status(404).json({ success: false, error: "Espacio no encontrado" });
       }
 
+      await pool.query('COMMIT'); // Confirmar transacción
+
       res.status(200).json({ success: true, data: rows[0] });
     } catch (error) {
+      await pool.query('ROLLBACK'); // Revertir transacción en caso de error
       console.error("Error actualizando espacio:", error);
       res.status(500).json({ success: false, error: "Error al actualizar espacio" });
     }
@@ -162,17 +179,27 @@ export const Evento = {
   delete: async (req, res) => {
     try {
       const { id } = req.body;
+
+      await pool.query('BEGIN'); // Iniciar transacción
+
+      // Establecer el id_persona en la sesión de la base de datos
+      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+
       const { rows } = await pool.query(
         'DELETE FROM guayaba.Evento WHERE id_evento = $1 RETURNING *',
         [id]
       );
 
       if (rows.length === 0) {
+        await pool.query('ROLLBACK'); // Revertir transacción
         return res.status(404).json({ success: false, error: "Evento no encontrado" });
       }
 
+      await pool.query('COMMIT'); // Confirmar transacción
+
       res.status(200).json({ success: true, data: rows[0] });
     } catch (error) {
+      await pool.query('ROLLBACK'); // Revertir transacción en caso de error
       console.error("Error eliminando evento:", error);
       res.status(500).json({ success: false, error: "Error al eliminar evento" });
     }

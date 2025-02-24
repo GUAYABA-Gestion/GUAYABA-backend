@@ -1,5 +1,9 @@
 BEGIN;
 
+-- Configurar valor inicial para app.current_user_id
+SET LOCAL app.current_user_id = '-1';
+
+
 INSERT INTO guayaba.Mantenimiento ("id_espacio", "id_encargado", "estado", "tipo_contrato", "tipo", "necesidad", "prioridad", "detalle", "fecha_ini", "fecha_fin", "observación") 
 VALUES 
 ('22', '20', 'En Progreso', 'interno', 'Estándar', 'No requiere', 'Baja', 'Adecuación puesto de trabajo', '2024-07-14 00:52:30', '2024-07-15 10:59:58', 'Iudiciorumque poenis obligantur. Qui autem.'),

@@ -1,5 +1,4 @@
 import { pool } from "../db.js";
-import jwt from "jsonwebtoken";
 
 export const Sede = {
   getSedes: async (req, res) => {
@@ -54,21 +53,26 @@ export const Sede = {
     }
 
     try {
+      await pool.query("BEGIN"); // Iniciar transacción
+
       const checkResult = await pool.query(
         `SELECT * FROM guayaba.Sede WHERE nombre = $1`,
         [nombre]
       );
 
       if (checkResult.rowCount > 0) {
+        await pool.query("ROLLBACK"); // Revertir transacción
         return res.json({
           message: "La sede ya está registrada.",
           registered: true,
         });
       }
 
+      // Establecer el id_persona en la sesión de la base de datos
+      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+
       const sedeResult = await pool.query(
-        `INSERT INTO guayaba.Sede (nombre, municipio, coordinador) VALUES ($1,
-        $2, $3, $4, NULL, NULL) RETURNING id_persona`,
+        `INSERT INTO guayaba.Sede (nombre, municipio, coordinador) VALUES ($1, $2, $3) RETURNING *`,
         [nombre, municipio, coordinador]
       );
 
@@ -76,8 +80,15 @@ export const Sede = {
         throw new Error("No se pudo crear la sede.");
       }
 
-      return res.json({ message: "Sede creada con éxito.", registered: true });
+      await pool.query("COMMIT"); // Confirmar transacción
+
+      return res.json({
+        message: "Sede creada con éxito.",
+        registered: true,
+        sede: sedeResult.rows[0],
+      });
     } catch (err) {
+      await pool.query("ROLLBACK"); // Revertir transacción en caso de error
       console.error("Error al crear la sede:", err.message);
       res.status(500).json({ error: "Error al crear la sede." });
     }
@@ -85,24 +96,42 @@ export const Sede = {
 
   updateSede: async (req, res) => {
     const { id_sede, nombre, municipio, coordinador } = req.body;
-  
+
+    if (!id_sede || !nombre || !municipio || !coordinador) {
+      return res
+        .status(400)
+        .json({ error: "Todos los campos son requeridos." });
+    }
+
     try {
+      await pool.query("BEGIN"); // Iniciar transacción
+
+      // Establecer el id_persona en la sesión de la base de datos
+      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+
       const updateSedeQuery = `
       UPDATE guayaba.Sede
       SET nombre = $2, municipio = $3, coordinador = $4
       WHERE id_sede = $1
       RETURNING *;
       `;
-  
+
       const values = [id_sede, nombre, municipio, coordinador];
       const result = await pool.query(updateSedeQuery, values);
-  
+
       if (result.rowCount === 0) {
+        await pool.query("ROLLBACK"); // Revertir transacción
         return res.status(404).json({ error: "Sede no encontrada" });
       }
-  
-      res.status(200).json({ message: "Sede actualizada exitosamente", sede: result.rows[0] });
+
+      await pool.query("COMMIT"); // Confirmar transacción
+
+      res.status(200).json({
+        message: "Sede actualizada exitosamente",
+        sede: result.rows[0],
+      });
     } catch (error) {
+      await pool.query("ROLLBACK"); // Revertir transacción en caso de error
       console.error("Error al actualizar la sede:", error.message);
       res.status(500).json({ error: "Hubo un problema al actualizar la sede." });
     }
@@ -112,16 +141,20 @@ export const Sede = {
     const { sedes } = req.body; // Array de sedes
     try {
       await pool.query("BEGIN"); // Iniciar transacción
+
+      // Establecer el id_persona en la sesión de la base de datos
+      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+
       const addedSedes = [];
       for (const sede of sedes) {
         const { nombre, municipio, coordinador } = sede;
-  
+
         const result = await pool.query(
           `INSERT INTO guayaba.Sede (nombre, municipio, coordinador)
            VALUES ($1, $2, $3) RETURNING *`,
           [nombre, municipio, coordinador]
         );
-  
+
         addedSedes.push(result.rows[0]);
       }
       await pool.query("COMMIT"); // Confirmar transacción
@@ -142,15 +175,27 @@ export const Sede = {
     const { id } = req.params;
 
     try {
+      await pool.query("BEGIN"); // Iniciar transacción
+
+      // Establecer el id_persona en la sesión de la base de datos
+      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+
       const deleteQuery = `DELETE FROM guayaba.Sede WHERE id_sede = $1 RETURNING *;`;
       const result = await pool.query(deleteQuery, [id]);
 
       if (result.rowCount === 0) {
+        await pool.query("ROLLBACK"); // Revertir transacción
         return res.status(404).json({ error: "Sede no encontrada" });
       }
 
-      res.status(200).json({ message: "Sede eliminada exitosamente" });
+      await pool.query("COMMIT"); // Confirmar transacción
+
+      res.status(200).json({
+        message: "Sede eliminada exitosamente",
+        sede: result.rows[0],
+      });
     } catch (error) {
+      await pool.query("ROLLBACK"); // Revertir transacción en caso de error
       if (error.code === '23503') { // Foreign key violation
         res.status(400).json({ error: "No se puede eliminar la sede hasta que se eliminen los edificios y otros registros asociados." });
       } else {

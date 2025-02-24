@@ -4,7 +4,7 @@ import { pool } from "../db.js";
 export const generateTestJWT = () => {
   return jwt.sign(
     {
-      userId: 1,  // ID de prueba
+      id_persona: 1,  // ID de prueba
     },
     process.env.JWT_SECRET,
     { expiresIn: "1d" } // 1 día de duración

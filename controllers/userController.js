@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 
 // Exportar un objeto con todas las funciones del controlador
 export const User = {
-  // Función para verificar si un usuario existe
   checkUser: async (req, res) => {
     try {
       const { email } = req.user; // Email obtenido del middleware
@@ -19,7 +18,7 @@ export const User = {
       const user = result.rows[0];
       const token = jwt.sign(
         {
-          userId: user.id_persona,
+          id_persona: user.id_persona,
         },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
@@ -37,6 +36,11 @@ export const User = {
       const { email, name } = req.user; // Datos del middleware
       const { id_sede } = req.body;
 
+      await pool.query("BEGIN"); // Iniciar transacción
+
+      // Establecer el id_persona en la sesión de la base de datos
+      await pool.query(`SET LOCAL app.current_user_id = '-1'`);
+
       // Insertar el nuevo usuario en la tabla guayaba.Persona
       const result = await pool.query(
         `INSERT INTO guayaba.Persona (correo, nombre, id_sede, rol) VALUES ($1, $2, $3, $4) RETURNING *`,
@@ -46,14 +50,17 @@ export const User = {
       const newUser = result.rows[0];
       const token = jwt.sign(
         {
-          userId: newUser.id_persona,
+          id_persona: newUser.id_persona,
         },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
       );
 
+      await pool.query("COMMIT"); // Confirmar transacción
+
       res.json({ registered: true, user: newUser, token });
     } catch (error) {
+      await pool.query("ROLLBACK"); // Revertir transacción en caso de error
       console.error("Error al registrar usuario:", error);
       res.status(400).json({ error: "Error al registrar usuario" });
     }
@@ -93,7 +100,7 @@ export const User = {
         `SELECT id_persona, correo, nombre, rol, id_sede 
          FROM guayaba.Persona 
          WHERE id_persona = $1`,
-        [req.user.userId]
+        [req.user.id_persona]
       );
 
       if (user.rowCount === 0) {
@@ -106,6 +113,7 @@ export const User = {
       res.status(500).json({ error: "Error interno del servidor" });
     }
   },
+
   getUserDataById: async (req, res) => {
     try {
       // Usuario ya validado por el middleware
@@ -113,7 +121,7 @@ export const User = {
         `SELECT id_persona, correo, nombre, rol, id_sede 
          FROM guayaba.Persona 
          WHERE id_persona = $1`,
-        [req.body.userId]
+        [req.body.id_persona]
       );
 
       if (user.rowCount === 0) {
@@ -129,10 +137,13 @@ export const User = {
 
   deleteUser: async (req, res) => {
     try {
-      const userId = req.user.userId; // Obtener ID del usuario autenticado
+      const userId = req.user.id_persona; // Obtener ID del usuario autenticado
 
       // Iniciar transacción
       await pool.query("BEGIN");
+
+      // Establecer el id_persona en la sesión de la base de datos
+      await pool.query(`SET LOCAL app.current_user_id = '${userId}'`);
 
       // 1. Eliminar relaciones dependientes (si las hay)
       await pool.query(
@@ -180,6 +191,11 @@ export const User = {
       req.body;
 
     try {
+      await pool.query("BEGIN"); // Iniciar transacción
+
+      // Establecer el id_persona en la sesión de la base de datos
+      await pool.query(`SET LOCAL app.current_user_id = '${id_persona}'`);
+      
       const updatePersonaQuery = `
         UPDATE guayaba.Persona
         SET nombre = $2, correo = $3, telefono = $4, rol = $5, detalles = $6, id_sede = $7
@@ -199,11 +215,15 @@ export const User = {
       const result = await pool.query(updatePersonaQuery, values);
 
       if (result.rows.length === 0) {
+        await pool.query("ROLLBACK"); // Revertir transacción
         return res.status(404).json({ error: "Usuario no encontrado." });
       }
 
+      await pool.query("COMMIT"); // Confirmar transacción
+
       res.status(200).json(result.rows[0]); // Devuelve el usuario actualizado
     } catch (error) {
+      await pool.query("ROLLBACK"); // Revertir transacción en caso de error
       console.error("Error al actualizar la cuenta:", error.message);
       res
         .status(500)
@@ -215,6 +235,10 @@ export const User = {
     const { users } = req.body; // Array de usuarios
     try {
       await pool.query("BEGIN"); // Iniciar transacción
+
+      // Establecer el id_persona en la sesión de la base de datos
+      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+
       const addedUsers = [];
       for (const user of users) {
         const { nombre, correo, telefono, rol, detalles, id_sede } = user;
@@ -240,16 +264,30 @@ export const User = {
       });
     }
   },
-  
+
   deleteUserManual: async (req, res) => {
     const { id_persona } = req.body;
     try {
-      await pool.query(
-        `DELETE FROM guayaba.Persona WHERE id_persona = $1 AND es_manual = TRUE`,
+      await pool.query("BEGIN"); // Iniciar transacción
+
+      // Establecer el id_persona en la sesión de la base de datos
+      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+
+      const result = await pool.query(
+        `DELETE FROM guayaba.Persona WHERE id_persona = $1 AND es_manual = TRUE RETURNING *`,
         [id_persona]
       );
+
+      if (result.rowCount === 0) {
+        await pool.query("ROLLBACK"); // Revertir transacción
+        return res.status(404).json({ error: "Usuario no encontrado o no es manual." });
+      }
+
+      await pool.query("COMMIT"); // Confirmar transacción
+
       res.status(200).json({ message: "Usuario eliminado exitosamente." });
     } catch (error) {
+      await pool.query("ROLLBACK"); // Revertir transacción en caso de error
       console.error("Error al eliminar usuario:", error.message);
       res
         .status(500)

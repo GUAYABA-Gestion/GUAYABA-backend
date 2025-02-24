@@ -1,5 +1,9 @@
 BEGIN;
 
+-- Configurar valor inicial para app.current_user_id
+SET LOCAL app.current_user_id = '-1';
+
+
 INSERT INTO guayaba.Facultad (nombre) VALUES
 ('Facultad de Medicina Veterinaria y Zootecnia'),
 ('Facultad de Ciencias Sociales y Administrativas'),

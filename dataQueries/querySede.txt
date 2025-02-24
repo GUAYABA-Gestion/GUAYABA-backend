@@ -1,5 +1,9 @@
 BEGIN;
 
+-- Configurar valor inicial para app.current_user_id
+SET LOCAL app.current_user_id = '-1';
+
+
 INSERT INTO guayaba.Sede ("nombre", "municipio", "coordinador") 
 VALUES 
     ('Sede Bogotá', '11001', '1'),

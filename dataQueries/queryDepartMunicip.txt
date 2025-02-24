@@ -1,5 +1,8 @@
 BEGIN;
 
+-- Configurar valor inicial para app.current_user_id
+SET LOCAL app.current_user_id = '-1';
+
 -- Insertar nombres de los departamentos
 INSERT INTO guayaba.Departamento (id,nombre)
 VALUES

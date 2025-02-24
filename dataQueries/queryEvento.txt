@@ -1,5 +1,9 @@
 BEGIN;
 
+-- Configurar valor inicial para app.current_user_id
+SET LOCAL app.current_user_id = '-1';
+
+
 INSERT INTO guayaba.Evento ("id_espacio", "nombre", "descripción", "tipo", "id_programa", "fecha_inicio", "fecha_fin", "hora_inicio", "hora_fin", "días")
 VALUES 
 ('18', 'Vivendo', 'Non nulli patriam, plerique autem se ipsos diligant. Quod et acutum genus.', 'Externo', '7', '2024-04-04 09:48:03', '2024-01-25 00:31:50', '20:30', '21:30', 'MXJ'),

@@ -1,5 +1,9 @@
 BEGIN;
 
+-- Configurar valor inicial para app.current_user_id
+SET LOCAL app.current_user_id = '-1';
+
+
 INSERT INTO guayaba.Espacio ("id_edificio", "nombre", "estado", "clasificacion", "uso", "tipo", "piso", "capacidad", "mediciónmt2") 
 VALUES 
 ( '16', 'Felis wiedi or Leopardus weidi', 'En funcionamiento', 'Parqueadero', 'Académico-Administrativo', 'Aula/salón', 'Tercer Piso', '64', '3320'),

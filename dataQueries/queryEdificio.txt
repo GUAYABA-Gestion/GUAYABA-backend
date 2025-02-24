@@ -1,5 +1,9 @@
 BEGIN;
 
+-- Configurar valor inicial para app.current_user_id
+SET LOCAL app.current_user_id = '-1';
+
+
 INSERT INTO guayaba.Edificio ("id_sede", "id_titular", "nombre", "dirección", "categoría", "propiedad", "area_terreno", "area_construida", "cert_uso_suelo") 
 VALUES 
 ('1', '11', 'Censes haec', '7520 Kersey Way', 'CAT', 'NO OPERACIONAL', '1226', '2575', '0'),
