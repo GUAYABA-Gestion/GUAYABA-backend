@@ -34,7 +34,7 @@ export const User = {
   registerUser: async (req, res) => {
     try {
       const { email, name } = req.user; // Datos del middleware
-      const { id_sede } = req.body;
+      const { id_sede, rol } = req.body;
 
       await pool.query("BEGIN"); // Iniciar transacción
 
@@ -44,7 +44,7 @@ export const User = {
       // Insertar el nuevo usuario en la tabla guayaba.Persona
       const result = await pool.query(
         `INSERT INTO guayaba.Persona (correo, nombre, id_sede, rol) VALUES ($1, $2, $3, $4) RETURNING *`,
-        [email, name, id_sede, "user"] // Asignar rol "user" por defecto
+        [email, name, id_sede, rol] // Asignar rol "user" por defecto
       );
 
       const newUser = result.rows[0];
@@ -190,6 +190,7 @@ export const User = {
     const { id_persona, nombre, correo, telefono, rol, detalles, id_sede } =
       req.body;
 
+    console.log(req.body);
     try {
       await pool.query("BEGIN"); // Iniciar transacción
 
