@@ -12,7 +12,7 @@ import { getMunicipios } from "../controllers/utilsController.js";
 import { pool } from "../db.js";
 
 import { generateTestJWT } from "../controllers/utilsController.js"; // Importa la función
-import { jwtAuth } from "../middlewares/authMiddleware.js";
+import { jwtAuth} from "../middlewares/authMiddleware.js";
 
 export const Test = {
   generateTestToken: (req, res) => {
@@ -25,7 +25,6 @@ const router = Router();
 
 // Ruta raíz
 router.get("/", (req, res) => res.send("¡Hola Mundo!"));
-
 router.get("/generate-test-token", Test.generateTestToken);
 
 // Ruta /ping
@@ -42,7 +41,6 @@ router.get("/ping", async (req, res) => {
 // Montar rutas específicas
 router.use("/user", userRoutes);
 router.use("/sedes", sedeRoutes);
-//WIP
 router.use("/espacios", espacioRoutes);
 router.use("/mantenimientos", mantenimientoRoutes);
 router.use("/edificios", edificioRoutes);

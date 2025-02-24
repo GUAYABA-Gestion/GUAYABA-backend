@@ -1,10 +1,11 @@
 import { pool } from "../db.js";
+import { Mail } from "../middlewares/nodemailer.js";
 
 export const Mantenimiento = {
 
   create: async (req, res) => {
     try {
-      const requiredFields = ['id_espacio', 'id_encargado', 'estado', 'tipo', 'prioridad'];
+      const requiredFields = ['id_espacio', 'id_encargado', 'estado', 'tipo', 'prioridad', 'plazo_ideal'];
       const missingFields = requiredFields.filter(field => !req.body[field]);
 
       if (missingFields.length > 0) {
@@ -21,8 +22,8 @@ export const Mantenimiento = {
 
       const { rows } = await pool.query(
         `INSERT INTO guayaba.Mantenimiento
-        (id_espacio, id_encargado, tipo_contrato, tipo, estado, necesidad, prioridad, detalle, fecha_ini, fecha_fin, observación) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
+        (id_espacio, id_encargado, tipo_contrato, tipo, estado, necesidad, prioridad, detalle, fecha_asignacion, plazo_ideal, terminado, observación) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
         RETURNING *`,
         [
           req.body.id_espacio,
@@ -33,8 +34,9 @@ export const Mantenimiento = {
           req.body.necesidad || null,
           req.body.prioridad,
           req.body.detalle || null,
-          req.body.fecha_ini || new Date().toISOString(),
-          req.body.fecha_fin || null,
+          req.body.fecha_asignacion || new Date().toISOString(),
+          req.body.plazo_ideal,
+          req.body.terminado || false,
           req.body.observación || null
         ]
       );
@@ -92,10 +94,10 @@ export const Mantenimiento = {
 
       const { rows } = await pool.query(
         `UPDATE guayaba.Mantenimiento 
-        SET estado = $1, fecha_fin = $2 
-        WHERE id_mantenimiento = $3 
+        SET estado = $1, fecha_fin = $2, terminado = $3 
+        WHERE id_mantenimiento = $4 
         RETURNING *`,
-        [nuevoEstado, nuevoEstado === 'Completo' ? new Date() : null, id]
+        [nuevoEstado, nuevoEstado === 'Completo' ? new Date() : null, nuevoEstado === 'Completo', id]
       );
 
       if (rows.length === 0) {
@@ -162,5 +164,53 @@ export const Mantenimiento = {
       console.error("Error obteniendo mantenimientos por espacios:", error);
       res.status(500).json({ success: false, error: "Error interno del servidor" });
     }
-  }
+  },
+
+  verificarYEnviarAlertas: async () => {
+    try {
+      await pool.query('BEGIN'); // Iniciar transacción
+
+      // Establecer el id_persona en la sesión de la base de datos a -1 para indicar actualización automática
+      await pool.query(`SET LOCAL app.current_user_id = '-1'`);
+
+      const { rows } = await pool.query(`
+        SELECT m.*, p.correo AS encargado_correo
+        FROM guayaba.Mantenimiento m
+        JOIN guayaba.Persona p ON m.id_encargado = p.id_persona
+        WHERE m.terminado = FALSE
+        AND CURRENT_DATE > (m.fecha_asignacion + INTERVAL '1 day' * m.plazo_ideal)
+      `);
+
+      if (rows.length === 0) {
+        console.log("No hay mantenimientos atrasados.");
+        await pool.query('COMMIT'); // Confirmar transacción
+        return;
+      }
+
+      for (const mantenimiento of rows) {
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: mantenimiento.encargado_correo,
+          subject: `Alerta de Mantenimiento Atrasado: ${mantenimiento.tipo}`,
+          text: `El mantenimiento con ID ${mantenimiento.id_mantenimiento} está atrasado. Por favor, tome las acciones necesarias.`
+        };
+
+        await Mail.sendAlertEmail(mailOptions);
+
+        // Actualizar el estado y la prioridad del mantenimiento
+        await pool.query(
+          `UPDATE guayaba.Mantenimiento
+           SET estado = 'Pendiente', prioridad = 'Alta'
+           WHERE id_mantenimiento = $1`,
+          [mantenimiento.id_mantenimiento]
+        );
+      }
+
+      await pool.query('COMMIT'); // Confirmar transacción
+      console.log("Alertas enviadas y mantenimientos actualizados correctamente.");
+    } catch (error) {
+      await pool.query('ROLLBACK'); // Revertir transacción en caso de error
+      console.error("Error verificando y enviando alertas:", error);
+    }
+  },
 };

@@ -3,6 +3,14 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 import jwt from "jsonwebtoken";
 import { pool } from "../db.js";
 
+export const apiKeyAuth = (req, res, next) => {
+  const apiKey = req.headers['x-api-key'];
+  if (apiKey && apiKey === process.env.API_KEY) {
+    return next();
+  }
+  res.status(403).json({ error: 'Forbidden' });
+};
+
 // Middleware unificado para Google Token
 export const dynamicGoogleValidation = (req, res, next) => {
   if (req.headers.authorization?.startsWith('Bearer ')) {

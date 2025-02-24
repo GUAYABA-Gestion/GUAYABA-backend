@@ -133,8 +133,9 @@ CREATE TABLE guayaba.Mantenimiento (
     necesidad VARCHAR(50),
     prioridad VARCHAR(20),
     detalle VARCHAR(50),
-    fecha_ini TIMESTAMP NOT NULL,
-    fecha_fin TIMESTAMP,
+    fecha_asignacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    plazo_ideal INTEGER,
+    terminado BOOLEAN DEFAULT FALSE,
     observación TEXT,
     FOREIGN KEY (id_espacio) REFERENCES guayaba.Espacio(id_espacio) ON DELETE RESTRICT,
     FOREIGN KEY (id_encargado) REFERENCES guayaba.Persona(id_persona) ON DELETE SET NULL
