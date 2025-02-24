@@ -15,5 +15,6 @@ router.post("/addUser", jwtAuth,User.addUsersManual);
 router.delete("/deleteManual", jwtAuth, User.deleteUserManual);
 router.post("/references", jwtAuth, User.getUserReferences);
 router.get("/getAdmins", jwtAuth, User.getAdmins);
+router.get("/getMaints", jwtAuth, User.getMaints);
 
 export default router;

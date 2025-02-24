@@ -350,4 +350,25 @@ export const User = {
       res.status(500).json({ error: "Error interno del servidor" });
     }
   },
+
+  getMaints: async (req, res) => {
+    try {
+      const result = await pool.query(
+        `SELECT id_persona, correo, nombre, rol, id_sede 
+         FROM guayaba.Persona 
+         WHERE rol IN ('maint')`
+      );
+
+      if (result.rowCount === 0) {
+        return res
+          .status(404)
+          .json({ error: "No se encontraron personal de mantenimiento." });
+      }
+
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Error en getMaints:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+    }
+  },
 };
