@@ -145,20 +145,6 @@ export const User = {
       // Establecer el id_persona en la sesión de la base de datos
       await pool.query(`SET LOCAL app.current_user_id = '${userId}'`);
 
-      // 1. Eliminar relaciones dependientes (si las hay)
-      await pool.query(
-        `DELETE FROM guayaba.Mantenimiento 
-         WHERE id_encargado = $1`,
-        [userId]
-      );
-
-      await pool.query(
-        `UPDATE guayaba.Sede 
-         SET coordinador = NULL 
-         WHERE coordinador = $1`,
-        [userId]
-      );
-
       // 2. Eliminar usuario
       const result = await pool.query(
         `DELETE FROM guayaba.Persona 

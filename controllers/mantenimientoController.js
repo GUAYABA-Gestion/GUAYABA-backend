@@ -414,4 +414,72 @@ export const Mantenimiento = {
       console.error("Error verificando y enviando alertas:", error.message);
     }
   },
+
+  addMantenimientosManual: async (req, res) => {
+    const { mantenimientos } = req.body; // Array de mantenimientos
+  
+    if (!Array.isArray(mantenimientos) || mantenimientos.length === 0) {
+      return res.status(400).json({ error: "Debe proporcionar una lista de mantenimientos válida." });
+    }
+  
+    try {
+      await pool.query("BEGIN"); // Iniciar transacción
+  
+      // Establecer el id_persona en la sesión de la base de datos
+      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+  
+      const addedMantenimientos = [];
+      for (const mantenimiento of mantenimientos) {
+        const {
+          id_espacio,
+          id_encargado,
+          tipo_contrato,
+          tipo,
+          estado,
+          necesidad,
+          prioridad,
+          detalle,
+          fecha_asignacion,
+          plazo_ideal,
+          terminado,
+          observación
+        } = mantenimiento;
+  
+        const result = await pool.query(
+          `INSERT INTO guayaba.Mantenimiento
+          (id_espacio, id_encargado, tipo_contrato, tipo, estado, necesidad, prioridad, detalle, fecha_asignacion, plazo_ideal, terminado, observación) 
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
+          RETURNING *`,
+          [
+            id_espacio,
+            id_encargado,
+            tipo_contrato || 'interno',
+            tipo,
+            estado,
+            necesidad || null,
+            prioridad,
+            detalle || null,
+            fecha_asignacion || new Date().toISOString(),
+            plazo_ideal,
+            terminado || false,
+            observación || null
+          ]
+        );
+  
+        addedMantenimientos.push(result.rows[0]);
+      }
+  
+      await pool.query("COMMIT"); // Confirmar transacción
+      res.status(200).json({
+        message: "Mantenimientos añadidos exitosamente.",
+        mantenimientos: addedMantenimientos,
+      });
+    } catch (error) {
+      await pool.query("ROLLBACK"); // Revertir transacción en caso de error
+      console.error("Error al añadir mantenimientos:", error.message);
+      res.status(500).json({
+        error: error.message || "Hubo un problema al añadir los mantenimientos.",
+      });
+    }
+  },
 };
