@@ -96,13 +96,6 @@ export const Sede = {
 
   updateSede: async (req, res) => {
     const { id_sede, nombre, municipio, coordinador } = req.body;
-
-    if (!id_sede || !nombre || !municipio || !coordinador) {
-      return res
-        .status(400)
-        .json({ error: "Todos los campos son requeridos." });
-    }
-
     try {
       await pool.query("BEGIN"); // Iniciar transacción
 

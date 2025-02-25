@@ -213,7 +213,7 @@ export const Espacio = {
       const updateResult = await pool.query(
         `UPDATE guayaba.Espacio
          SET id_edificio = $1, nombre = $2, estado = $3, clasificacion = $4, uso = $5, tipo = $6, piso = $7, capacidad = $8, mediciónmt2 = $9
-         WHERE id_espacio = $10 RETURNING id_espacio`,
+         WHERE id_espacio = $10 RETURNING *`,
         [
           id_edificio,
           nombre,

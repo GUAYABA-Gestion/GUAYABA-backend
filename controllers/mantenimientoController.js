@@ -4,18 +4,34 @@ import { Mail } from "../middlewares/nodemailer.js";
 export const Mantenimiento = {
 
   create: async (req, res) => {
+    const {
+      id_espacio,
+      id_encargado,
+      tipo_contrato,
+      tipo,
+      estado,
+      necesidad,
+      prioridad,
+      detalle,
+      fecha_asignacion,
+      plazo_ideal,
+      terminado,
+      observación
+    } = req.body;
+
+    if (
+      !id_espacio ||
+      !id_encargado ||
+      !estado ||
+      !tipo ||
+      !prioridad ||
+      !plazo_ideal
+    ) {
+      return res.status(400).json({ error: "Todos los campos requeridos deben ser proporcionados." });
+    }
+
     try {
-      const requiredFields = ['id_espacio', 'id_encargado', 'estado', 'tipo', 'prioridad', 'plazo_ideal'];
-      const missingFields = requiredFields.filter(field => !req.body[field]);
-
-      if (missingFields.length > 0) {
-        return res.status(400).json({
-          success: false,
-          error: `Campos requeridos faltantes: ${missingFields.join(', ')}`
-        });
-      }
-
-      await pool.query('BEGIN'); // Iniciar transacción
+      await pool.query("BEGIN"); // Iniciar transacción
 
       // Establecer el id_persona en la sesión de la base de datos
       await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
@@ -26,28 +42,77 @@ export const Mantenimiento = {
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
         RETURNING *`,
         [
-          req.body.id_espacio,
-          req.body.id_encargado,
-          req.body.tipo_contrato || 'interno',
-          req.body.tipo,
-          req.body.estado,
-          req.body.necesidad || null,
-          req.body.prioridad,
-          req.body.detalle || null,
-          req.body.fecha_asignacion || new Date().toISOString(),
-          req.body.plazo_ideal,
-          req.body.terminado || false,
-          req.body.observación || null
+          id_espacio,
+          id_encargado,
+          tipo_contrato || 'interno',
+          tipo,
+          estado,
+          necesidad || null,
+          prioridad,
+          detalle || null,
+          fecha_asignacion || new Date().toISOString(),
+          plazo_ideal,
+          terminado || false,
+          observación || null
         ]
       );
 
+      const mantenimiento = rows[0];
+
+      // Obtener detalles del espacio, encargado y persona que asignó el mantenimiento
+      const { rows: espacioRows } = await pool.query(
+        `SELECT e.id_edificio, e.nombre AS nombre_espacio, ed.nombre AS nombre_edificio, s.nombre AS nombre_sede, e.clasificacion
+         FROM guayaba.Espacio e
+         JOIN guayaba.Edificio ed ON e.id_edificio = ed.id_edificio
+         JOIN guayaba.Sede s ON ed.id_sede = s.id_sede
+         WHERE e.id_espacio = $1`,
+        [mantenimiento.id_espacio]
+      );
+
+      const espacio = espacioRows[0];
+
+      const { rows: asignadorRows } = await pool.query(
+        `SELECT correo FROM guayaba.Persona WHERE id_persona = $1`,
+        [req.user.id_persona]
+      );
+
+      const asignador = asignadorRows[0];
+
+      if (mantenimiento.id_encargado) {
+        const { rows: encargadoRows } = await pool.query(
+          `SELECT correo FROM guayaba.Persona WHERE id_persona = $1`,
+          [mantenimiento.id_encargado]
+        );
+
+        const encargado = encargadoRows[0];
+
+        const fechaInicio = new Date(mantenimiento.fecha_asignacion);
+        const fechaFin = new Date(fechaInicio);
+        fechaFin.setDate(fechaFin.getDate() + mantenimiento.plazo_ideal);
+
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: encargado.correo,
+          subject: `Guayaba - Nuevo Mantenimiento Asignado: ${mantenimiento.tipo}`,
+          text: `Se ha asignado un nuevo mantenimiento para el espacio ${espacio.nombre_espacio} en el edificio ${espacio.nombre_edificio}, sede ${espacio.nombre_sede}. 
+                 Clasificación: ${espacio.clasificacion}
+                 Detalle: ${mantenimiento.detalle}
+                 Fecha de Asignación: ${fechaInicio.toLocaleDateString()}
+                 Fecha Ideal de Finalización: ${fechaFin.toLocaleDateString()}
+                 Asignado por: ${asignador.correo}
+                 Puede ver más detalles en: ${process.env.NEXT_PUBLIC_FRONTEND_URL}/espacios?idEdificio=${espacio.id_edificio}`
+        };
+
+        await Mail.sendAlertEmail(mailOptions);
+      }
+
       await pool.query('COMMIT'); // Confirmar transacción
 
-      res.status(201).json({ success: true, data: rows[0] });
+      res.status(201).json({ message: "Mantenimiento creado con éxito.", mantenimiento });
     } catch (error) {
       await pool.query('ROLLBACK'); // Revertir transacción en caso de error
-      console.error("Error creando mantenimiento:", error);
-      res.status(500).json({ success: false, error: "Error al crear mantenimiento" });
+      console.error("Error creando mantenimiento:", error.message);
+      res.status(500).json({ error: "Error al crear mantenimiento." });
     }
   },
 
@@ -56,91 +121,218 @@ export const Mantenimiento = {
       const { rows } = await pool.query('SELECT * FROM guayaba.Mantenimiento');
       res.status(200).json(rows);
     } catch (error) {
-      console.error("Error obteniendo Mantenimientos:", error);
-      res.status(500).json({ success: false, error: "Error interno del servidor" });
+      console.error("Error obteniendo Mantenimientos:", error.message);
+      res.status(500).json({ error: "Error al obtener los mantenimientos." });
     }
   },
 
   getById: async (req, res) => {
+    const { id } = req.params;
+
     try {
-      const { id } = req.body;
       const { rows } = await pool.query(
         'SELECT * FROM guayaba.Mantenimiento WHERE id_mantenimiento = $1',
         [id]
       );
 
-      res.status(200).json(rows);
+      if (rows.length === 0) {
+        return res.status(404).json({ error: "Mantenimiento no encontrado" });
+      }
+
+      res.status(200).json(rows[0]);
     } catch (error) {
-      console.error("Error obteniendo mantenimientos:", error);
-      res.status(500).json({ success: false, error: "Error al obtener historial de mantenimiento" });
+      console.error("Error obteniendo mantenimiento:", error.message);
+      res.status(500).json({ error: "Error al obtener el mantenimiento." });
     }
   },
 
-  updateEstado: async (req, res) => {
+  update: async (req, res) => {
+    const {
+      id_mantenimiento,
+      id_espacio,
+      id_encargado,
+      tipo_contrato,
+      tipo,
+      estado,
+      necesidad,
+      prioridad,
+      detalle,
+      fecha_asignacion,
+      plazo_ideal,
+      terminado,
+      observación
+    } = req.body;
+
+    if (!id_mantenimiento) {
+      return res.status(400).json({ error: "El campo 'id_mantenimiento' es requerido." });
+    }
+
     try {
-      const { id, nuevoEstado } = req.body;
-
-      if (!nuevoEstado) {
-        return res.status(400).json({
-          success: false,
-          error: "Se requiere el campo 'nuevoEstado'"
-        });
-      }
-
-      await pool.query('BEGIN'); // Iniciar transacción
+      await pool.query("BEGIN"); // Iniciar transacción
 
       // Establecer el id_persona en la sesión de la base de datos
       await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
 
-      const { rows } = await pool.query(
-        `UPDATE guayaba.Mantenimiento 
-        SET estado = $1, fecha_fin = $2, terminado = $3 
-        WHERE id_mantenimiento = $4 
-        RETURNING *`,
-        [nuevoEstado, nuevoEstado === 'Completo' ? new Date() : null, nuevoEstado === 'Completo', id]
-      );
+      const updateQuery = `
+        UPDATE guayaba.Mantenimiento
+        SET id_espacio = $2, id_encargado = $3, tipo_contrato = $4, tipo = $5, estado = $6,
+        necesidad = $7, prioridad = $8, detalle = $9, fecha_asignacion = $10, plazo_ideal = $11,
+        terminado = $12, observación = $13
+        WHERE id_mantenimiento = $1
+        RETURNING *;
+      `;
+
+      const values = [
+        id_mantenimiento,
+        id_espacio,
+        id_encargado,
+        tipo_contrato,
+        tipo,
+        estado,
+        necesidad,
+        prioridad,
+        detalle,
+        fecha_asignacion,
+        plazo_ideal,
+        terminado,
+        observación
+      ];
+
+      const { rows } = await pool.query(updateQuery, values);
 
       if (rows.length === 0) {
-        await pool.query('ROLLBACK'); // Revertir transacción
-        return res.status(404).json({ success: false, error: "Registro de mantenimiento no encontrado" });
+        await pool.query("ROLLBACK"); // Revertir transacción
+        return res.status(404).json({ error: "Mantenimiento no encontrado" });
+      }
+
+      const mantenimiento = rows[0];
+
+      // Obtener detalles del espacio, encargado y persona que actualizó el mantenimiento
+      const { rows: espacioRows } = await pool.query(
+        `SELECT e.id_edificio, e.nombre AS nombre_espacio, ed.nombre AS nombre_edificio, s.nombre AS nombre_sede, e.clasificacion
+         FROM guayaba.Espacio e
+         JOIN guayaba.Edificio ed ON e.id_edificio = ed.id_edificio
+         JOIN guayaba.Sede s ON ed.id_sede = s.id_sede
+         WHERE e.id_espacio = $1`,
+        [mantenimiento.id_espacio]
+      );
+
+      const espacio = espacioRows[0];
+
+      const { rows: actualizadorRows } = await pool.query(
+        `SELECT correo FROM guayaba.Persona WHERE id_persona = $1`,
+        [req.user.id_persona]
+      );
+
+      const actualizador = actualizadorRows[0];
+
+      if (mantenimiento.id_encargado) {
+        const { rows: encargadoRows } = await pool.query(
+          `SELECT correo FROM guayaba.Persona WHERE id_persona = $1`,
+          [mantenimiento.id_encargado]
+        );
+
+        const encargado = encargadoRows[0];
+
+        const fechaInicio = new Date(mantenimiento.fecha_asignacion);
+        const fechaFin = new Date(fechaInicio);
+        fechaFin.setDate(fechaFin.getDate() + mantenimiento.plazo_ideal);
+
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: encargado.correo,
+          subject: `Guayaba - Actualización de Mantenimiento: ${mantenimiento.tipo}`,
+          text: `El mantenimiento para el espacio ${espacio.nombre_espacio} en el edificio ${espacio.nombre_edificio}, sede ${espacio.nombre_sede} ha sido actualizado. 
+                 Clasificación: ${espacio.clasificacion}
+                 Detalle: ${mantenimiento.detalle}
+                 Fecha de Asignación: ${fechaInicio.toLocaleDateString()}
+                 Fecha Ideal de Finalización: ${fechaFin.toLocaleDateString()}
+                 Actualizado por: ${actualizador.correo}
+                 Puede ver más detalles en: ${process.env.NEXT_PUBLIC_FRONTEND_URL}/espacios?idEdificio=${espacio.id_edificio}`
+        };
+
+        await Mail.sendAlertEmail(mailOptions);
       }
 
       await pool.query('COMMIT'); // Confirmar transacción
 
-      res.status(200).json({ success: true, data: rows[0] });
+      res.status(200).json({ message: "Mantenimiento actualizado exitosamente", mantenimiento });
     } catch (error) {
       await pool.query('ROLLBACK'); // Revertir transacción en caso de error
-      console.error("Error actualizando estado:", error);
-      res.status(500).json({ success: false, error: "Error al actualizar estado de mantenimiento" });
+      console.error("Error actualizando mantenimiento:", error.message);
+      res.status(500).json({ error: "Error al actualizar mantenimiento." });
     }
   },
 
   delete: async (req, res) => {
-    try {
-      const { id } = req.body;
+    const { id } = req.params;
 
-      await pool.query('BEGIN'); // Iniciar transacción
+    try {
+      await pool.query("BEGIN"); // Iniciar transacción
 
       // Establecer el id_persona en la sesión de la base de datos
       await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
 
-      const { rows } = await pool.query(
-        'DELETE FROM guayaba.Mantenimiento WHERE id_mantenimiento = $1 RETURNING *',
-        [id]
-      );
+      const deleteQuery = `DELETE FROM guayaba.Mantenimiento WHERE id_mantenimiento = $1 RETURNING *;`;
+      const { rows } = await pool.query(deleteQuery, [id]);
 
       if (rows.length === 0) {
-        await pool.query('ROLLBACK'); // Revertir transacción
-        return res.status(404).json({ success: false, error: "Registro de mantenimiento no encontrado" });
+        await pool.query("ROLLBACK"); // Revertir transacción
+        return res.status(404).json({ error: "Mantenimiento no encontrado" });
+      }
+
+      const mantenimiento = rows[0];
+
+      // Obtener detalles del espacio, encargado y persona que eliminó el mantenimiento
+      const { rows: espacioRows } = await pool.query(
+        `SELECT e.id_edificio, e.nombre AS nombre_espacio, ed.nombre AS nombre_edificio, s.nombre AS nombre_sede, e.clasificacion
+         FROM guayaba.Espacio e
+         JOIN guayaba.Edificio ed ON e.id_edificio = ed.id_edificio
+         JOIN guayaba.Sede s ON ed.id_sede = s.id_sede
+         WHERE e.id_espacio = $1`,
+        [mantenimiento.id_espacio]
+      );
+
+      const espacio = espacioRows[0];
+
+      const { rows: eliminadorRows } = await pool.query(
+        `SELECT correo FROM guayaba.Persona WHERE id_persona = $1`,
+        [req.user.id_persona]
+      );
+
+      const eliminador = eliminadorRows[0];
+
+      if (mantenimiento.id_encargado) {
+        const { rows: encargadoRows } = await pool.query(
+          `SELECT correo FROM guayaba.Persona WHERE id_persona = $1`,
+          [mantenimiento.id_encargado]
+        );
+
+        const encargado = encargadoRows[0];
+
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: encargado.correo,
+          subject: `Guayaba - Eliminación de Mantenimiento: ${mantenimiento.tipo}`,
+          text: `El mantenimiento para el espacio ${espacio.nombre_espacio} en el edificio ${espacio.nombre_edificio}, sede ${espacio.nombre_sede} ha sido eliminado. 
+                 Clasificación: ${espacio.clasificacion}
+                 Detalle: ${mantenimiento.detalle}
+                 Fecha de Asignación: ${new Date(mantenimiento.fecha_asignacion).toLocaleDateString()}
+                 Fecha Ideal de Finalización: ${new Date(new Date(mantenimiento.fecha_asignacion).setDate(new Date(mantenimiento.fecha_asignacion).getDate() + mantenimiento.plazo_ideal)).toLocaleDateString()}
+                 Eliminado por: ${eliminador.correo}
+                 Puede ver más detalles en: ${process.env.NEXT_PUBLIC_FRONTEND_URL}/espacios?idEdificio=${espacio.id_edificio}`
+        };
+
+        await Mail.sendAlertEmail(mailOptions);
       }
 
       await pool.query('COMMIT'); // Confirmar transacción
 
-      res.status(200).json({ success: true, data: rows[0] });
+      res.status(200).json({ message: "Mantenimiento eliminado exitosamente", mantenimiento });
     } catch (error) {
       await pool.query('ROLLBACK'); // Revertir transacción en caso de error
-      console.error("Error eliminando mantenimiento:", error);
-      res.status(500).json({ success: false, error: "Error al eliminar registro de mantenimiento" });
+      console.error("Error eliminando mantenimiento:", error.message);
+      res.status(500).json({ error: "Error al eliminar mantenimiento." });
     }
   },
 
@@ -148,10 +340,7 @@ export const Mantenimiento = {
     const { ids_espacios } = req.body;
 
     if (!Array.isArray(ids_espacios) || ids_espacios.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: "Debe proporcionar una lista de IDs de espacios válida."
-      });
+      return res.status(400).json({ error: "Debe proporcionar una lista de IDs de espacios válida." });
     }
 
     try {
@@ -159,10 +348,10 @@ export const Mantenimiento = {
       const query = `SELECT * FROM guayaba.Mantenimiento WHERE id_espacio IN (${placeholders})`;
       const { rows } = await pool.query(query, ids_espacios);
 
-      res.status(200).json({ success: true, data: rows });
+      res.status(200).json(rows);
     } catch (error) {
-      console.error("Error obteniendo mantenimientos por espacios:", error);
-      res.status(500).json({ success: false, error: "Error interno del servidor" });
+      console.error("Error obteniendo mantenimientos por espacios:", error.message);
+      res.status(500).json({ error: "Error al obtener mantenimientos por espacios." });
     }
   },
 
@@ -174,9 +363,12 @@ export const Mantenimiento = {
       await pool.query(`SET LOCAL app.current_user_id = '-1'`);
 
       const { rows } = await pool.query(`
-        SELECT m.*, p.correo AS encargado_correo
+        SELECT m.*, p.correo AS encargado_correo, e.id_edificio, e.nombre AS nombre_espacio, ed.nombre AS nombre_edificio, s.nombre AS nombre_sede, e.clasificacion
         FROM guayaba.Mantenimiento m
         JOIN guayaba.Persona p ON m.id_encargado = p.id_persona
+        JOIN guayaba.Espacio e ON m.id_espacio = e.id_espacio
+        JOIN guayaba.Edificio ed ON e.id_edificio = ed.id_edificio
+        JOIN guayaba.Sede s ON ed.id_sede = s.id_sede
         WHERE m.terminado = FALSE
         AND CURRENT_DATE > (m.fecha_asignacion + INTERVAL '1 day' * m.plazo_ideal)
       `);
@@ -188,11 +380,20 @@ export const Mantenimiento = {
       }
 
       for (const mantenimiento of rows) {
+        const fechaInicio = new Date(mantenimiento.fecha_asignacion);
+        const fechaFin = new Date(fechaInicio);
+        fechaFin.setDate(fechaFin.getDate() + mantenimiento.plazo_ideal);
+
         const mailOptions = {
           from: process.env.EMAIL_USER,
           to: mantenimiento.encargado_correo,
-          subject: `Alerta de Mantenimiento Atrasado: ${mantenimiento.tipo}`,
-          text: `El mantenimiento con ID ${mantenimiento.id_mantenimiento} está atrasado. Por favor, tome las acciones necesarias.`
+          subject: `Guayaba - Alerta de Mantenimiento Atrasado: ${mantenimiento.tipo}`,
+          text: `El mantenimiento para el espacio ${mantenimiento.nombre_espacio} en el edificio ${mantenimiento.nombre_edificio}, sede ${mantenimiento.nombre_sede} está atrasado. Por favor, tome las acciones necesarias.
+                 Clasificación: ${mantenimiento.clasificacion}
+                 Detalle: ${mantenimiento.detalle}
+                 Fecha de Asignación: ${fechaInicio.toLocaleDateString()}
+                 Fecha Ideal de Finalización: ${fechaFin.toLocaleDateString()}
+                 Puede ver más detalles en: ${process.env.NEXT_PUBLIC_FRONTEND_URL}/espacios?idEdificio=${mantenimiento.id_edificio}`
         };
 
         await Mail.sendAlertEmail(mailOptions);
@@ -210,7 +411,7 @@ export const Mantenimiento = {
       console.log("Alertas enviadas y mantenimientos actualizados correctamente.");
     } catch (error) {
       await pool.query('ROLLBACK'); // Revertir transacción en caso de error
-      console.error("Error verificando y enviando alertas:", error);
+      console.error("Error verificando y enviando alertas:", error.message);
     }
   },
 };
