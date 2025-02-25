@@ -13,9 +13,9 @@ export const Contact = {
 
     const mailOptions = {
       from: `"${name}" <${process.env.EMAIL_USER}>`,
-      to: process.env.RECEIVER_EMAIL,
+      to: `"${name}" <${process.env.EMAIL_USER}>`, 
       replyTo: email,
-      subject: "Nuevo mensaje de contacto",
+      subject: "Guayaba - Nuevo mensaje de contacto",
       text: `Nombre: ${name}\nCorreo: ${email}\nMensaje: ${message}`,
     };
 
