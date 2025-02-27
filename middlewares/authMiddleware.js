@@ -81,7 +81,7 @@ export const jwtAuth = async (req, res, next) => {
 
     // Verificar si el usuario existe en la base de datos
     const user = await pool.query(
-      `SELECT id_persona, rol FROM guayaba.Persona 
+      `SELECT id_persona,correo, nombre rol FROM guayaba.Persona 
        WHERE id_persona = $1`,
       [decoded.id_persona]
     );

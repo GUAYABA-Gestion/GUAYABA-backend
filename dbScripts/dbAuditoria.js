@@ -22,7 +22,7 @@ CREATE TABLE guayaba.Auditoria (
     fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     datos_anteriores JSONB,
     datos_nuevos JSONB,
-    id_persona INTEGER -- Nueva columna para el ID de la persona
+    correo VARCHAR(255) -- Nueva columna para el correo de la persona
 );
 
 -- Eliminar función de auditoría si ya existe
@@ -32,10 +32,10 @@ DROP FUNCTION IF EXISTS guayaba.fn_auditoria();
 CREATE OR REPLACE FUNCTION guayaba.fn_auditoria()
 RETURNS TRIGGER AS $$
 DECLARE
-    v_id_persona INTEGER;
+    v_correo VARCHAR(255);
 BEGIN
-    -- Obtener el id_persona de la sesión
-    v_id_persona := current_setting('app.current_user_id', true)::INTEGER;
+    -- Obtener el correo de la sesión
+    v_correo := current_setting('app.current_user_email', true);
 
     INSERT INTO guayaba.Auditoria (
         tabla_afectada,
@@ -43,15 +43,15 @@ BEGIN
         fecha_hora,
         datos_anteriores,
         datos_nuevos,
-        id_persona
+        correo
     )
     VALUES (
         TG_TABLE_NAME,             -- Nombre de la tabla afectada
         TG_OP,                     -- Operación (INSERT, UPDATE, DELETE)
-       (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') AT TIME ZONE 'UTC-5',         -- Timestamp actual
+        (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') AT TIME ZONE 'UTC-5',         -- Timestamp actual
         CASE WHEN TG_OP IN ('UPDATE', 'DELETE') THEN row_to_json(OLD) ELSE NULL END, -- Datos anteriores
         CASE WHEN TG_OP IN ('INSERT', 'UPDATE') THEN row_to_json(NEW) ELSE NULL END,  -- Datos nuevos
-        v_id_persona               -- ID de la persona que realizó la operación
+        v_correo                   -- Correo de la persona que realizó la operación
     );
     RETURN NEW;
 END;

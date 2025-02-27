@@ -34,7 +34,7 @@ export const Evento = {
       await pool.query('BEGIN');
   
       // Establecer el id_persona en la sesión de la base de datos
-      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+      await pool.query(`SET LOCAL app.current_user_email = '${req.user.correo}'`);
   
       const addedEventos = [];
       for (const evento of eventos) {
@@ -85,7 +85,7 @@ export const Evento = {
       await pool.query('BEGIN');
   
       // Establecer el id_persona en la sesión de la base de datos
-      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+      await pool.query(`SET LOCAL app.current_user_email = '${req.user.correo}'`);
   
       const setClauses = Object.keys(updates)
         .map((key, index) => `"${key}" = $${index + 1}`)
@@ -120,7 +120,7 @@ export const Evento = {
       await pool.query('BEGIN');
   
       // Establecer el id_persona en la sesión de la base de datos
-      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+      await pool.query(`SET LOCAL app.current_user_email = '${req.user.correo}'`);
   
       const { rows } = await pool.query(
         'DELETE FROM guayaba.Evento WHERE id_evento = $1 RETURNING *',

@@ -39,7 +39,7 @@ export const User = {
       await pool.query("BEGIN"); // Iniciar transacción
 
       // Establecer el id_persona en la sesión de la base de datos
-      await pool.query(`SET LOCAL app.current_user_id = '-1'`);
+      await pool.query(`SET LOCAL app.current_user_email = 'Registro'`);
 
       // Insertar el nuevo usuario en la tabla guayaba.Persona
       const result = await pool.query(
@@ -143,7 +143,7 @@ export const User = {
       await pool.query("BEGIN");
 
       // Establecer el id_persona en la sesión de la base de datos
-      await pool.query(`SET LOCAL app.current_user_id = '${userId}'`);
+      await pool.query(`SET LOCAL app.current_user_email = 'Eliminación'`);
 
       // 2. Eliminar usuario
       const result = await pool.query(
@@ -237,7 +237,7 @@ export const User = {
       await pool.query("BEGIN"); // Iniciar transacción
 
       // Establecer el id_persona en la sesión de la base de datos
-      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+      await pool.query(`SET LOCAL app.current_user_email = '${req.user.correo}'`);
 
       const addedUsers = [];
       for (const user of users) {
@@ -288,7 +288,7 @@ export const User = {
       await pool.query("BEGIN"); // Iniciar transacción
 
       // Establecer el id_persona en la sesión de la base de datos
-      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+      await pool.query(`SET LOCAL app.current_user_email = '${req.user.correo}'`);
 
       const result = await pool.query(
         `DELETE FROM guayaba.Persona WHERE id_persona = $1 AND es_manual = TRUE RETURNING *`,

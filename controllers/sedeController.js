@@ -69,7 +69,7 @@ export const Sede = {
       }
 
       // Establecer el id_persona en la sesión de la base de datos
-      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+      await pool.query(`SET LOCAL app.current_user_email = '${req.user.correo}'`);
 
       const sedeResult = await pool.query(
         `INSERT INTO guayaba.Sede (nombre, municipio, coordinador) VALUES ($1, $2, $3) RETURNING *`,
@@ -100,7 +100,7 @@ export const Sede = {
       await pool.query("BEGIN"); // Iniciar transacción
 
       // Establecer el id_persona en la sesión de la base de datos
-      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+      await pool.query(`SET LOCAL app.current_user_email = '${req.user.correo}'`);
 
       const updateSedeQuery = `
       UPDATE guayaba.Sede
@@ -136,7 +136,7 @@ export const Sede = {
       await pool.query("BEGIN"); // Iniciar transacción
 
       // Establecer el id_persona en la sesión de la base de datos
-      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+      await pool.query(`SET LOCAL app.current_user_email = '${req.user.correo}'`);
 
       const addedSedes = [];
       for (const sede of sedes) {
@@ -171,7 +171,7 @@ export const Sede = {
       await pool.query("BEGIN"); // Iniciar transacción
 
       // Establecer el id_persona en la sesión de la base de datos
-      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
+      await pool.query(`SET LOCAL app.current_user_email = '${req.user.correo}'`);
 
       const deleteQuery = `DELETE FROM guayaba.Sede WHERE id_sede = $1 RETURNING *;`;
       const result = await pool.query(deleteQuery, [id]);
