@@ -3,119 +3,6 @@ import { Mail } from "../middlewares/nodemailer.js";
 
 export const Mantenimiento = {
 
-  create: async (req, res) => {
-    const {
-      id_espacio,
-      id_encargado,
-      tipo_contrato,
-      tipo,
-      estado,
-      necesidad,
-      prioridad,
-      detalle,
-      fecha_asignacion,
-      plazo_ideal,
-      terminado,
-      observación
-    } = req.body;
-
-    if (
-      !id_espacio ||
-      !id_encargado ||
-      !estado ||
-      !tipo ||
-      !prioridad ||
-      !plazo_ideal
-    ) {
-      return res.status(400).json({ error: "Todos los campos requeridos deben ser proporcionados." });
-    }
-
-    try {
-      await pool.query("BEGIN"); // Iniciar transacción
-
-      // Establecer el id_persona en la sesión de la base de datos
-      await pool.query(`SET LOCAL app.current_user_id = '${req.user.id_persona}'`);
-
-      const { rows } = await pool.query(
-        `INSERT INTO guayaba.Mantenimiento
-        (id_espacio, id_encargado, tipo_contrato, tipo, estado, necesidad, prioridad, detalle, fecha_asignacion, plazo_ideal, terminado, observación) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
-        RETURNING *`,
-        [
-          id_espacio,
-          id_encargado,
-          tipo_contrato || 'interno',
-          tipo,
-          estado,
-          necesidad || null,
-          prioridad,
-          detalle || null,
-          fecha_asignacion || new Date().toISOString(),
-          plazo_ideal,
-          terminado || false,
-          observación || null
-        ]
-      );
-
-      const mantenimiento = rows[0];
-
-      // Obtener detalles del espacio, encargado y persona que asignó el mantenimiento
-      const { rows: espacioRows } = await pool.query(
-        `SELECT e.id_edificio, e.nombre AS nombre_espacio, ed.nombre AS nombre_edificio, s.nombre AS nombre_sede, e.clasificacion
-         FROM guayaba.Espacio e
-         JOIN guayaba.Edificio ed ON e.id_edificio = ed.id_edificio
-         JOIN guayaba.Sede s ON ed.id_sede = s.id_sede
-         WHERE e.id_espacio = $1`,
-        [mantenimiento.id_espacio]
-      );
-
-      const espacio = espacioRows[0];
-
-      const { rows: asignadorRows } = await pool.query(
-        `SELECT correo FROM guayaba.Persona WHERE id_persona = $1`,
-        [req.user.id_persona]
-      );
-
-      const asignador = asignadorRows[0];
-
-      if (mantenimiento.id_encargado) {
-        const { rows: encargadoRows } = await pool.query(
-          `SELECT correo FROM guayaba.Persona WHERE id_persona = $1`,
-          [mantenimiento.id_encargado]
-        );
-
-        const encargado = encargadoRows[0];
-
-        const fechaInicio = new Date(mantenimiento.fecha_asignacion);
-        const fechaFin = new Date(fechaInicio);
-        fechaFin.setDate(fechaFin.getDate() + mantenimiento.plazo_ideal);
-
-        const mailOptions = {
-          from: process.env.EMAIL_USER,
-          to: encargado.correo,
-          subject: `Guayaba - Nuevo Mantenimiento Asignado: ${mantenimiento.tipo}`,
-          text: `Se ha asignado un nuevo mantenimiento para el espacio ${espacio.nombre_espacio} en el edificio ${espacio.nombre_edificio}, sede ${espacio.nombre_sede}. 
-                 Clasificación: ${espacio.clasificacion}
-                 Detalle: ${mantenimiento.detalle}
-                 Fecha de Asignación: ${fechaInicio.toLocaleDateString()}
-                 Fecha Ideal de Finalización: ${fechaFin.toLocaleDateString()}
-                 Asignado por: ${asignador.correo}
-                 Puede ver más detalles en: ${process.env.NEXT_PUBLIC_FRONTEND_URL}/espacios?idEdificio=${espacio.id_edificio}`
-        };
-
-        await Mail.sendAlertEmail(mailOptions);
-      }
-
-      await pool.query('COMMIT'); // Confirmar transacción
-
-      res.status(201).json({ message: "Mantenimiento creado con éxito.", mantenimiento });
-    } catch (error) {
-      await pool.query('ROLLBACK'); // Revertir transacción en caso de error
-      console.error("Error creando mantenimiento:", error.message);
-      res.status(500).json({ error: "Error al crear mantenimiento." });
-    }
-  },
-
   getAll: async (req, res) => {
     try {
       const { rows } = await pool.query('SELECT * FROM guayaba.Mantenimiento');
@@ -123,26 +10,6 @@ export const Mantenimiento = {
     } catch (error) {
       console.error("Error obteniendo Mantenimientos:", error.message);
       res.status(500).json({ error: "Error al obtener los mantenimientos." });
-    }
-  },
-
-  getById: async (req, res) => {
-    const { id } = req.params;
-
-    try {
-      const { rows } = await pool.query(
-        'SELECT * FROM guayaba.Mantenimiento WHERE id_mantenimiento = $1',
-        [id]
-      );
-
-      if (rows.length === 0) {
-        return res.status(404).json({ error: "Mantenimiento no encontrado" });
-      }
-
-      res.status(200).json(rows[0]);
-    } catch (error) {
-      console.error("Error obteniendo mantenimiento:", error.message);
-      res.status(500).json({ error: "Error al obtener el mantenimiento." });
     }
   },
 
@@ -336,25 +203,6 @@ export const Mantenimiento = {
     }
   },
 
-  getByEspacios: async (req, res) => {
-    const { ids_espacios } = req.body;
-
-    if (!Array.isArray(ids_espacios) || ids_espacios.length === 0) {
-      return res.status(400).json({ error: "Debe proporcionar una lista de IDs de espacios válida." });
-    }
-
-    try {
-      const placeholders = ids_espacios.map((_, index) => `$${index + 1}`).join(', ');
-      const query = `SELECT * FROM guayaba.Mantenimiento WHERE id_espacio IN (${placeholders})`;
-      const { rows } = await pool.query(query, ids_espacios);
-
-      res.status(200).json(rows);
-    } catch (error) {
-      console.error("Error obteniendo mantenimientos por espacios:", error.message);
-      res.status(500).json({ error: "Error al obtener mantenimientos por espacios." });
-    }
-  },
-
   verificarYEnviarAlertas: async () => {
     try {
       await pool.query('BEGIN'); // Iniciar transacción
@@ -482,4 +330,24 @@ export const Mantenimiento = {
       });
     }
   },
+
+  getByEspacios: async (req, res) => {
+    const { ids_espacios } = req.body;
+  
+    if (!Array.isArray(ids_espacios) || ids_espacios.length === 0) {
+      return res.status(400).json({ error: "Debe proporcionar una lista de IDs de espacios válida." });
+    }
+  
+    try {
+      const placeholders = ids_espacios.map((_, index) => `$${index + 1}`).join(', ');
+      const query = `SELECT * FROM guayaba.Mantenimiento WHERE id_espacio IN (${placeholders})`;
+      const { rows } = await pool.query(query, ids_espacios);
+  
+      res.status(200).json(rows);
+    } catch (error) {
+      console.error("Error obteniendo mantenimientos por espacios:", error.message);
+      res.status(500).json({ error: "Error al obtener mantenimientos por espacios." });
+    }
+  },
+
 };

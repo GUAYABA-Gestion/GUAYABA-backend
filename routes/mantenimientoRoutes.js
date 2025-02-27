@@ -6,7 +6,6 @@ const router = Router();
 
 router.get("/", jwtAuth, Mantenimiento.getAll);
 router.post("/by-espacios", jwtAuth, Mantenimiento.getByEspacios);
-router.post("/create", jwtAuth, Mantenimiento.create);
 router.put("/update-mantenimiento", jwtAuth, Mantenimiento.update); // Actualizar cualquier campo
 router.delete("/delete/:id", jwtAuth, Mantenimiento.delete);
 router.post("/addMantenimientosManual", jwtAuth, Mantenimiento.addMantenimientosManual);
