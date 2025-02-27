@@ -9,6 +9,7 @@ import auditRoutes from "./auditRoutes.js"
 import alertaRoutes from "./alertaRoutes.js"
 import contactRoutes from "./contactRoutes.js"
 import { getMunicipios } from "../controllers/utilsController.js";
+import { getProgramasConFacultad } from "../controllers/utilsController.js";
 import { pool } from "../db.js";
 
 import { generateTestJWT } from "../controllers/utilsController.js"; // Importa la función
@@ -49,5 +50,6 @@ router.use("/eventos",eventoRoutes);
 router.use("/alerta",alertaRoutes);
 router.use("/contact",contactRoutes);
 router.get("/municipios", jwtAuth, getMunicipios);
+router.get("/programas", jwtAuth, getProgramasConFacultad);
 
 export default router;
