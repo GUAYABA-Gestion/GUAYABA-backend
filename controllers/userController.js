@@ -114,27 +114,6 @@ export const User = {
     }
   },
 
-  getUserDataById: async (req, res) => {
-    try {
-      // Usuario ya validado por el middleware
-      const user = await pool.query(
-        `SELECT id_persona, correo, nombre, rol, id_sede 
-         FROM guayaba.Persona 
-         WHERE id_persona = $1`,
-        [req.body.id_persona]
-      );
-
-      if (user.rowCount === 0) {
-        return res.status(404).json({ error: "Usuario no encontrado" });
-      }
-
-      res.json(user.rows[0]);
-    } catch (error) {
-      console.error("Error en getById:", error);
-      res.status(500).json({ error: "Error interno del servidor" });
-    }
-  },
-
   deleteUser: async (req, res) => {
     try {
       const userId = req.user.id_persona; // Obtener ID del usuario autenticado
@@ -179,7 +158,7 @@ export const User = {
       await pool.query("BEGIN"); // Iniciar transacción
 
       // Establecer el id_persona en la sesión de la base de datos
-      await pool.query(`SET LOCAL app.current_user_id = '${id_persona}'`);
+      await pool.query(`SET LOCAL app.current_user_email = '${req.user.correo}'`);
 
       const updatePersonaQuery = `
         UPDATE guayaba.Persona

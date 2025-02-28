@@ -1,7 +1,7 @@
 BEGIN;
 
 -- Configurar valor inicial para app.current_user_id
-SET LOCAL app.current_user_email = 'guayabagestion@gmail.com ';
+SET LOCAL app.current_user_email = 'guayabagestion@gmail.com';
 
 
 INSERT INTO guayaba.Edificio ("id_sede", "id_titular", "nombre", "dirección", "categoría", "propiedad", "area_terreno", "area_construida", "cert_uso_suelo") 

@@ -6,7 +6,6 @@ const router = Router();
 
 router.post("/check-user", dynamicGoogleValidation, User.checkUser);
 router.post("/register", validateGoogleToken, User.registerUser);
-router.post("/getById", jwtAuth, User.getUserDataById);
 router.get("/getAll", jwtAuth, User.getUsersData);
 router.get("/me", jwtAuth, User.getUserData);
 router.put("/update", jwtAuth, User.updateUser);

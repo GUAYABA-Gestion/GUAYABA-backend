@@ -97,6 +97,7 @@ export const jwtAuth = async (req, res, next) => {
     // Adjuntar el usuario al request para uso posterior
     req.user = {
       ...decoded,
+      correo: user.rows[0].correo, // Incluir el correo del usuario
       role: user.rows[0].rol // Incluir el rol del usuario
     };
 

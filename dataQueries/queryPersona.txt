@@ -1,7 +1,7 @@
 BEGIN;
 
 -- Configurar valor inicial para app.current_user_id
-SET LOCAL app.current_user_email = 'guayabagestion@gmail.com ';
+SET LOCAL app.current_user_email = 'guayabagestion@gmail.com';
 
 
 INSERT INTO guayaba.Persona ("nombre", "correo", "telefono", "rol", "detalles", "es_manual") 
