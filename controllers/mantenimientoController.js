@@ -2,7 +2,27 @@ import { pool } from "../db.js";
 import { Mail } from "../middlewares/nodemailer.js";
 
 export const Mantenimiento = {
+  
+  getByEspacios: async (req, res) => {
+    const { ids_espacios } = req.body;
+  
+    if (!Array.isArray(ids_espacios) || ids_espacios.length === 0) {
+      return res.status(400).json({ error: "Debe proporcionar una lista de IDs de espacios válida." });
+    }
+  
+    try {
+      const placeholders = ids_espacios.map((_, index) => `$${index + 1}`).join(', ');
+      const query = `SELECT * FROM guayaba.Mantenimiento WHERE id_espacio IN (${placeholders})`;
+      const { rows } = await pool.query(query, ids_espacios);
+  
+      res.status(200).json(rows);
+    } catch (error) {
+      console.error("Error obteniendo mantenimientos por espacios:", error.message);
+      res.status(500).json({ error: "Error al obtener mantenimientos por espacios." });
+    }
+  },
 
+  
   getAll: async (req, res) => {
     try {
       const { rows } = await pool.query('SELECT * FROM guayaba.Mantenimiento');
@@ -331,23 +351,5 @@ export const Mantenimiento = {
     }
   },
 
-  getByEspacios: async (req, res) => {
-    const { ids_espacios } = req.body;
-  
-    if (!Array.isArray(ids_espacios) || ids_espacios.length === 0) {
-      return res.status(400).json({ error: "Debe proporcionar una lista de IDs de espacios válida." });
-    }
-  
-    try {
-      const placeholders = ids_espacios.map((_, index) => `$${index + 1}`).join(', ');
-      const query = `SELECT * FROM guayaba.Mantenimiento WHERE id_espacio IN (${placeholders})`;
-      const { rows } = await pool.query(query, ids_espacios);
-  
-      res.status(200).json(rows);
-    } catch (error) {
-      console.error("Error obteniendo mantenimientos por espacios:", error.message);
-      res.status(500).json({ error: "Error al obtener mantenimientos por espacios." });
-    }
-  },
 
 };

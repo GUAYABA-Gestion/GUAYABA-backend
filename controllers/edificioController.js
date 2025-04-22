@@ -2,6 +2,96 @@ import { pool } from "../db.js";
 
 export const Edificio = {
 
+  getMetricasAgrupadas: async (req, res) => {
+    const { ids_sedes } = req.body;
+
+    // Validar que se proporcionen las IDs de las sedes
+    if (!Array.isArray(ids_sedes) || ids_sedes.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Debe proporcionar una lista de IDs de sedes válida.",
+      });
+    }
+
+    try {
+      // Crear placeholders para las IDs de las sedes
+      const placeholders = ids_sedes.map((_, index) => `$${index + 1}`).join(', ');
+
+      // Consulta SQL para obtener las métricas agrupadas
+      const query = `
+        SELECT 
+          e.categoría AS categoria,
+          e.propiedad,
+          e.cert_uso_suelo AS cert_uso_suelo,
+          COUNT(*) AS total_edificios,
+          SUM(e.area_terreno) AS suma_area_terreno,
+          AVG(e.area_terreno) AS promedio_area_terreno,
+          SUM(e.area_construida) AS suma_area_construida,
+          AVG(e.area_construida) AS promedio_area_construida,
+          ARRAY_AGG(e.id_edificio) AS ids_edificios,
+          ARRAY_AGG(CONCAT(s.nombre, ' - ', e.nombre)) AS nombres_sedes_edificios
+        FROM 
+          guayaba.Edificio e
+        JOIN 
+          guayaba.Sede s ON e.id_sede = s.id_sede
+        WHERE 
+          e.id_sede IN (${placeholders})
+        GROUP BY 
+          e.categoría, e.propiedad, e.cert_uso_suelo;
+      `;
+
+      // Ejecutar la consulta
+      const { rows } = await pool.query(query, ids_sedes);
+
+      // Responder con los datos agrupados
+      res.status(200).json({ success: true, data: rows });
+    } catch (error) {
+      console.error("Error obteniendo métricas agrupadas de edificios:", error.message);
+      res.status(500).json({ success: false, error: "Error interno del servidor" });
+    }
+  },
+
+  getBySedes: async (req, res) => {
+    const { ids_sedes } = req.body;
+  
+    if (!Array.isArray(ids_sedes) || ids_sedes.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Debe proporcionar una lista de IDs de sedes válida."
+      });
+    }
+  
+    try {
+      const placeholders = ids_sedes.map((_, index) => `$${index + 1}`).join(', ');
+      const query = `
+        SELECT 
+          e.id_edificio,
+          e.nombre,
+          e.dirección,
+          e.id_sede,
+          e.categoría,
+          e.propiedad,
+          e.area_terreno,
+          e.area_construida,
+          e.cert_uso_suelo,
+          e.id_titular,
+          p.correo AS correo_titular
+        FROM 
+          guayaba.Edificio e
+        LEFT JOIN 
+          guayaba.Persona p ON e.id_titular = p.id_persona
+        WHERE 
+          e.id_sede IN (${placeholders});
+      `;
+      const { rows } = await pool.query(query, ids_sedes);
+  
+      res.status(200).json({ success: true, data: rows });
+    } catch (error) {
+      console.error("Error obteniendo edificios por sedes:", error.message);
+      res.status(500).json({ success: false, error: "Error interno del servidor" });
+    }
+  },
+
   getEdificios: async (req, res) => {
     try {
       const query = `

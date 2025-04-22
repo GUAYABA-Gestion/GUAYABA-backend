@@ -10,5 +10,7 @@ router.post("/create-edificio", jwtAuth, Edificio.createEdificio);
 router.put("/update-edificio", jwtAuth, Edificio.updateEdificio);
 router.post("/addEdificiosManual", jwtAuth, Edificio.addEdificiosManual);
 router.delete("/delete/:id", jwtAuth, Edificio.deleteEdificio);
+router.post("/metricas-agrupadas", Edificio.getMetricasAgrupadas);
+
 
 export default router;

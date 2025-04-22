@@ -102,9 +102,6 @@ CREATE TABLE guayaba.Programa (
     FOREIGN KEY (id_facultad) REFERENCES guayaba.Facultad(id_facultad) ON DELETE RESTRICT
 );
 
--- Índice para búsqueda por estado de espacio
-CREATE INDEX idx_espacio_estado ON guayaba.Espacio(estado);
-
 -- Tabla Evento
 CREATE TABLE guayaba.Evento (
     id_evento SERIAL PRIMARY KEY,
@@ -141,8 +138,34 @@ CREATE TABLE guayaba.Mantenimiento (
     FOREIGN KEY (id_encargado) REFERENCES guayaba.Persona(id_persona) ON DELETE SET NULL
 );
 
--- Índice para búsqueda por prioridad en mantenimiento
+-- Índices para la tabla Edificio
+CREATE INDEX idx_edificio_categoria ON guayaba.Edificio(categoría);
+CREATE INDEX idx_edificio_propiedad ON guayaba.Edificio(propiedad);
+CREATE INDEX idx_edificio_cert_uso_suelo ON guayaba.Edificio(cert_uso_suelo);
+CREATE INDEX idx_edificio_id_sede ON guayaba.Edificio(id_sede);
+
+-- Índices para la tabla Espacio
+CREATE INDEX idx_espacio_estado ON guayaba.Espacio(estado);
+CREATE INDEX idx_espacio_clasificacion ON guayaba.Espacio(clasificacion);
+CREATE INDEX idx_espacio_uso ON guayaba.Espacio(uso);
+CREATE INDEX idx_espacio_tipo ON guayaba.Espacio(tipo);
+CREATE INDEX idx_espacio_piso ON guayaba.Espacio(piso);
+CREATE INDEX idx_espacio_id_edificio ON guayaba.Espacio(id_edificio);
+
+-- Índices para la tabla Evento
+CREATE INDEX idx_evento_tipo ON guayaba.Evento(tipo);
+CREATE INDEX idx_evento_id_espacio ON guayaba.Evento(id_espacio);
+CREATE INDEX idx_evento_fecha_inicio ON guayaba.Evento(fecha_inicio);
+CREATE INDEX idx_evento_fecha_fin ON guayaba.Evento(fecha_fin);
+
+-- Índices para la tabla Mantenimiento
+CREATE INDEX idx_mantenimiento_tipo_contrato ON guayaba.Mantenimiento(tipo_contrato);
+CREATE INDEX idx_mantenimiento_tipo ON guayaba.Mantenimiento(tipo);
+CREATE INDEX idx_mantenimiento_estado ON guayaba.Mantenimiento(estado);
+CREATE INDEX idx_mantenimiento_necesidad ON guayaba.Mantenimiento(necesidad);
 CREATE INDEX idx_mantenimiento_prioridad ON guayaba.Mantenimiento(prioridad);
+CREATE INDEX idx_mantenimiento_detalle ON guayaba.Mantenimiento(detalle);
+CREATE INDEX idx_mantenimiento_id_espacio ON guayaba.Mantenimiento(id_espacio);
 
 -- Fin de la transacción
 COMMIT;
