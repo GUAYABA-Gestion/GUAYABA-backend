@@ -1,0 +1,17 @@
+-- Ejemplo de migración de ENUM en PostgreSQL
+-- Este archivo NO será ejecutado automáticamente por Docker
+-- Puedes usarlo como referencia para actualizar enums en una base ya montada
+-- 1. Agregar un nuevo valor a un enum existente
+-- ALTER TYPE guayaba.estado_espacio ADD VALUE IF NOT EXISTS 'nuevo_estado';
+-- 2. Renombrar un valor de un enum (requiere crear un nuevo tipo)
+-- Paso 1: Crear el nuevo tipo con los valores deseados
+-- CREATE TYPE guayaba.estado_espacio_nuevo AS ENUM ('activo', 'inactivo', 'mantenimiento', 'nuevo_estado');
+-- Paso 2: Cambiar la columna a usar el nuevo tipo
+-- ALTER TABLE guayaba.Espacio ALTER COLUMN estado TYPE guayaba.estado_espacio_nuevo USING estado::text::guayaba.estado_espacio_nuevo;
+-- Paso 3: Eliminar el tipo viejo (opcional, solo si ya no se usa)
+-- DROP TYPE guayaba.estado_espacio;
+-- Paso 4: Renombrar el tipo nuevo al nombre original
+-- ALTER TYPE guayaba.estado_espacio_nuevo RENAME TO estado_espacio;
+-- 3. Eliminar un valor de un enum (requiere migrar los datos y crear un nuevo tipo)
+-- (Sigue el mismo proceso que el renombrado, pero omite el valor a eliminar en el nuevo tipo)
+-- IMPORTANTE: Haz siempre backup antes de manipular tipos ENUM en producción.

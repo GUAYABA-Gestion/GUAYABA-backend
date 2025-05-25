@@ -1,6 +1,3 @@
-import { query } from "../utils/dbUtils.js"; // Importar la función query
-
-const auditQuery = `
 BEGIN;
 
 -- Eliminar triggers si ya existen
@@ -48,7 +45,7 @@ BEGIN
     VALUES (
         TG_TABLE_NAME,             -- Nombre de la tabla afectada
         TG_OP,                     -- Operación (INSERT, UPDATE, DELETE)
-        (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') AT TIME ZONE 'UTC-5',         -- Timestamp actual
+        CURRENT_TIMESTAMP,         -- Timestamp actual (ya en la zona configurada desde el archivo 00-config.sql)
         CASE WHEN TG_OP IN ('UPDATE', 'DELETE') THEN row_to_json(OLD) ELSE NULL END, -- Datos anteriores
         CASE WHEN TG_OP IN ('INSERT', 'UPDATE') THEN row_to_json(NEW) ELSE NULL END,  -- Datos nuevos
         v_correo                   -- Correo de la persona que realizó la operación
@@ -96,16 +93,3 @@ FOR EACH ROW
 EXECUTE FUNCTION guayaba.fn_auditoria();
 
 COMMIT;
-`;
-
-const auditDB = async () => {
-  try {
-    console.log("Creando la tabla de auditoria...");
-    await query(auditQuery);
-    console.log("Tabla de auditoría creada correctamente.");
-  } catch (error) {
-    console.error("Error al inicializar crear la tabla de auditoría", error);
-  }
-};
-
-auditDB();

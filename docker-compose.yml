@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:15
+    container_name: guayaba_postgres
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./DB:/docker-entrypoint-initdb.d
+
+volumes:
+  db_data:
+  pgadmin_data:

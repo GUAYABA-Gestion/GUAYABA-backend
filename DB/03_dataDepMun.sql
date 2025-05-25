@@ -1,8 +1,5 @@
 BEGIN;
 
--- Configurar valor inicial para app.current_user_id
-SET LOCAL app.current_user_email = 'guayabagestion@gmail.com';
-
 -- Insertar nombres de los departamentos
 INSERT INTO guayaba.Departamento (id,nombre)
 VALUES
