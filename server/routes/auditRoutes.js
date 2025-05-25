@@ -2,7 +2,6 @@ import { Router } from "express";
 import { Audit } from "../controllers/auditController.js";
 import {
   jwtAuth,
-  validateGoogleTokenFromGet,
 } from "../middlewares/authMiddleware.js";
 
 const router = Router();

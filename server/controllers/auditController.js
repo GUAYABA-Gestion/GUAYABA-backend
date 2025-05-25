@@ -1,5 +1,4 @@
 import { pool } from "../db.js";
-import jwt from "jsonwebtoken";
 
 // Exportar un objeto con todas las funciones del controlador
 export const Audit = {

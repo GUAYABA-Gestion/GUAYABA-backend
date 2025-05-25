@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
-import routes from "./routes.js"
+import routes from "./server/routes.js"
 
 const app = express();
 
