@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { Mantenimiento } from "../controllers/mantenimientoController.js";
-import { jwtAuth, apiKeyAuth } from "../middlewares/authMiddleware.js";
+import { jwtAuth } from "../middlewares/authMiddleware.js";
 
 const router = Router();
 
@@ -10,6 +10,6 @@ router.put("/update-mantenimiento", jwtAuth, Mantenimiento.update); // Actualiza
 router.delete("/delete/:id", jwtAuth, Mantenimiento.delete);
 router.post("/addMantenimientosManual", jwtAuth, Mantenimiento.addMantenimientosManual);
 
-router.post('/verificar-mantenimiento', apiKeyAuth, Mantenimiento.verificarYEnviarAlertas);
+router.post('/verificar-mantenimiento', Mantenimiento.verificarYEnviarAlertas);
 
 export default router;

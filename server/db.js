@@ -1,5 +1,6 @@
 import { config } from 'dotenv';
 import pg from 'pg';
+import { PrismaClient } from '@prisma/client';
 
 config();
 
@@ -26,3 +27,4 @@ pool.on('error', (err) => {
 });
 
 export { pool };
+export const prisma = new PrismaClient();

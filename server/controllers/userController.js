@@ -1,4 +1,4 @@
-import { pool } from "../db.js";
+import { pool, prisma } from "../db.js";
 import jwt from "jsonwebtoken";
 
 // Exportar un objeto con todas las funciones del controlador
@@ -95,19 +95,9 @@ export const User = {
 
   getUserData: async (req, res) => {
     try {
-      // Usuario ya validado por el middleware
-      const user = await pool.query(
-        `SELECT id_persona, correo, nombre, rol, id_sede 
-         FROM guayaba.Persona 
-         WHERE id_persona = $1`,
-        [req.user.id_persona]
-      );
-
-      if (user.rowCount === 0) {
-        return res.status(404).json({ error: "Usuario no encontrado" });
-      }
-
-      res.json(user.rows[0]);
+      // El usuario ya viene del middleware, solo selecciona los campos a exponer
+      const { id_persona, correo, nombre, rol, id_sede } = req.user;
+      res.json({ id_persona, correo, nombre, rol, id_sede });
     } catch (error) {
       console.error("Error en getMe:", error);
       res.status(500).json({ error: "Error interno del servidor" });

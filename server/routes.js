@@ -1,4 +1,6 @@
 import { Router } from "express";
+
+import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import sedeRoutes from "./routes/sedeRoutes.js";
 import espacioRoutes from "./routes/espacioRoutes.js";
@@ -10,6 +12,8 @@ import alertaRoutes from "./routes/alertaRoutes.js"
 import contactRoutes from "./routes/contactRoutes.js"
 import utilsRoutes from "./routes/utilsRoutes.js";
 
+import { sessionMiddleware } from "./middlewares/authMiddleware.js";
+
 const router = Router();
 
 // Ruta raíz
@@ -19,7 +23,9 @@ router.get("/", (req, res) => res.send(`
 `));
 
 // Montar rutas específicas
-router.use("/user", userRoutes);
+router.use("/auth", authRoutes);
+router.use("/users", sessionMiddleware, userRoutes);
+
 router.use("/sedes", sedeRoutes);
 router.use("/espacios", espacioRoutes);
 router.use("/mantenimientos", mantenimientoRoutes);

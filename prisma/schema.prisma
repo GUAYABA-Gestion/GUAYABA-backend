@@ -1,0 +1,380 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["guayaba"]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model auditoria {
+  id_auditoria     Int       @id @default(autoincrement())
+  tabla_afectada   String    @db.VarChar(100)
+  operacion        String    @db.VarChar(10)
+  fecha_hora       DateTime? @default(now()) @db.Timestamp(6)
+  datos_anteriores Json?
+  datos_nuevos     Json?
+  correo           String?   @db.VarChar(255)
+
+  @@schema("guayaba")
+}
+
+model departamento {
+  id        Int         @id
+  nombre    String
+  municipio municipio[]
+
+  @@schema("guayaba")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model edificio {
+  id_edificio     Int                @id @default(autoincrement())
+  id_sede         Int
+  id_titular      Int?
+  nombre          String
+  direccion       String
+  categoria       categoria_edificio
+  propiedad       propiedad_edificio
+  area_terreno    Int?
+  area_construida Int?
+  cert_uso_suelo  Boolean
+  sede            sede               @relation(fields: [id_sede], references: [id_sede], onUpdate: NoAction)
+  persona         persona?           @relation(fields: [id_titular], references: [id_persona], onUpdate: NoAction)
+  espacio         espacio[]
+
+  @@index([categoria], map: "idx_edificio_categoria")
+  @@index([cert_uso_suelo], map: "idx_edificio_cert_uso_suelo")
+  @@index([id_sede], map: "idx_edificio_id_sede")
+  @@index([propiedad], map: "idx_edificio_propiedad")
+  @@schema("guayaba")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model espacio {
+  id_espacio    Int                   @id @default(autoincrement())
+  id_edificio   Int
+  nombre        String
+  estado        estado_espacio
+  clasificacion clasificacion_espacio
+  uso           uso_espacio
+  tipo          tipo_espacio
+  piso          piso_espacio
+  capacidad     Int?                  @db.SmallInt
+  medicionmt2   Int?
+  edificio      edificio              @relation(fields: [id_edificio], references: [id_edificio], onUpdate: NoAction)
+  evento        evento[]
+  mantenimiento mantenimiento[]
+
+  @@index([clasificacion], map: "idx_espacio_clasificacion")
+  @@index([estado], map: "idx_espacio_estado")
+  @@index([id_edificio], map: "idx_espacio_id_edificio")
+  @@index([piso], map: "idx_espacio_piso")
+  @@index([tipo], map: "idx_espacio_tipo")
+  @@index([uso], map: "idx_espacio_uso")
+  @@schema("guayaba")
+}
+
+model evento {
+  id_evento     Int             @id @default(autoincrement())
+  id_espacio    Int
+  tipo          tipo_evento
+  nombre        String
+  descripcion   String?
+  id_programa   Int
+  fecha_inicio  DateTime        @db.Date
+  fecha_fin     DateTime        @db.Date
+  hora_inicio   DateTime        @db.Time(6)
+  hora_fin      DateTime        @db.Time(6)
+  dias          String?         @db.VarChar(7)
+  espacio       espacio         @relation(fields: [id_espacio], references: [id_espacio], onUpdate: NoAction)
+  programa      programa        @relation(fields: [id_programa], references: [id_programa], onUpdate: NoAction)
+  mantenimiento mantenimiento[]
+
+  @@index([fecha_fin], map: "idx_evento_fecha_fin")
+  @@index([fecha_inicio], map: "idx_evento_fecha_inicio")
+  @@index([id_espacio], map: "idx_evento_id_espacio")
+  @@index([tipo], map: "idx_evento_tipo")
+  @@schema("guayaba")
+}
+
+model facultad {
+  id_facultad Int        @id @default(autoincrement())
+  nombre      String     @unique
+  programa    programa[]
+
+  @@schema("guayaba")
+}
+
+model mantenimiento {
+  id_mantenimiento Int                         @id @default(autoincrement())
+  id_espacio       Int
+  id_encargado     Int?
+  id_evento        Int?
+  tipo_contrato    tipo_contrato_mantenimiento
+  tipo             tipo_mantenimiento
+  estado           estado_mantenimiento
+  necesidad        necesidad_mantenimiento
+  prioridad        prioridad_mantenimiento
+  detalle          String?
+  fecha_asignacion DateTime?                   @default(now()) @db.Timestamp(6)
+  plazo_ideal      Int
+  terminado        Boolean?                    @default(false)
+  observacion      String?
+  persona          persona?                    @relation(fields: [id_encargado], references: [id_persona], onUpdate: NoAction)
+  espacio          espacio                     @relation(fields: [id_espacio], references: [id_espacio], onUpdate: NoAction)
+  evento           evento?                     @relation(fields: [id_evento], references: [id_evento], onUpdate: NoAction)
+
+  @@index([detalle], map: "idx_mantenimiento_detalle")
+  @@index([estado], map: "idx_mantenimiento_estado")
+  @@index([id_espacio], map: "idx_mantenimiento_id_espacio")
+  @@index([necesidad], map: "idx_mantenimiento_necesidad")
+  @@index([prioridad], map: "idx_mantenimiento_prioridad")
+  @@index([tipo], map: "idx_mantenimiento_tipo")
+  @@index([tipo_contrato], map: "idx_mantenimiento_tipo_contrato")
+  @@schema("guayaba")
+}
+
+model municipio {
+  id                             Int          @id
+  nombre                         String
+  departamento_id                Int
+  departamento                   departamento @relation(fields: [departamento_id], references: [id], onUpdate: NoAction)
+  sede_sede_municipioTomunicipio sede[]       @relation("sede_municipioTomunicipio")
+
+  @@index([nombre], map: "idx_municipio_nombre")
+  @@schema("guayaba")
+}
+
+model persona {
+  id_persona                     Int             @id @default(autoincrement())
+  correo                         String          @unique @db.VarChar(100)
+  nombre                         String
+  telefono                       String?         @db.VarChar(15)
+  rol                            rol_persona
+  detalles                       String?
+  es_manual                      Boolean?        @default(false)
+  id_sede                        Int?
+  edificio                       edificio[]
+  mantenimiento                  mantenimiento[]
+  sede_persona_id_sedeTosede     sede?           @relation("persona_id_sedeTosede", fields: [id_sede], references: [id_sede], onUpdate: NoAction)
+  sede_sede_coordinadorTopersona sede[]          @relation("sede_coordinadorTopersona")
+
+  @@index([correo], map: "idx_persona_correo")
+  @@index([nombre], map: "idx_persona_nombre")
+  @@schema("guayaba")
+}
+
+model programa {
+  id_programa Int            @id @default(autoincrement())
+  id_facultad Int
+  nombre      String
+  nivel       nivel_programa
+  evento      evento[]
+  facultad    facultad       @relation(fields: [id_facultad], references: [id_facultad], onUpdate: NoAction)
+
+  @@schema("guayaba")
+}
+
+model sede {
+  id_sede                             Int        @id @default(autoincrement())
+  nombre                              String
+  municipio                           Int
+  coordinador                         Int?
+  edificio                            edificio[]
+  persona_persona_id_sedeTosede       persona[]  @relation("persona_id_sedeTosede")
+  persona_sede_coordinadorTopersona   persona?   @relation("sede_coordinadorTopersona", fields: [coordinador], references: [id_persona], onUpdate: NoAction, map: "fk_sede_coordinador")
+  municipio_sede_municipioTomunicipio municipio  @relation("sede_municipioTomunicipio", fields: [municipio], references: [id], onUpdate: NoAction)
+
+  @@schema("guayaba")
+}
+
+enum categoria_edificio {
+  Cat
+  Principal
+  Sede
+  Sede_y_cat @map("Sede y cat")
+  Otro
+
+  @@schema("guayaba")
+}
+
+enum clasificacion_espacio {
+  Edificio_bloque                      @map("Edificio/bloque")
+  Parqueadero
+  Planta_de_tratamiento_de_agua        @map("Planta de tratamiento de agua")
+  Porter_a                             @map("Portería")
+  Unidad_de_almacenamiento_de_residuos @map("Unidad de almacenamiento de residuos")
+  Zona_deportiva                       @map("Zona deportiva")
+  Campus
+  Pozo_s_ptico                         @map("Pozo séptico")
+
+  @@schema("guayaba")
+}
+
+enum estado_espacio {
+  En_funcionamiento      @map("En funcionamiento")
+  Funcionamiento_parcial @map("Funcionamiento parcial")
+  En_mantenimiento       @map("En mantenimiento")
+  No_funciona            @map("No funciona")
+  Deshabilitado
+
+  @@schema("guayaba")
+}
+
+enum estado_mantenimiento {
+  Completado
+  En_proceso @map("En proceso")
+  Pendiente
+  Cancelado
+
+  @@schema("guayaba")
+}
+
+enum necesidad_mantenimiento {
+  Adecuaci_n_puesto_de_trabajo @map("Adecuación puesto de trabajo")
+  Arreglo_el_ctrico            @map("Arreglo eléctrico")
+  Arreglo_de_piso              @map("Arreglo de piso")
+  Aseo
+  Carpinter_a                  @map("Carpintería")
+  Cerrajer_a                   @map("Cerrajería")
+  Ejecuci_n_de_obra            @map("Ejecución de obra")
+  Fachada
+  Fontaner_a                   @map("Fontanería")
+  Limpieza_de_cubiertas        @map("Limpieza de cubiertas")
+  Luminarias
+  Mantenimiento_de_sillas      @map("Mantenimiento de sillas")
+  Pintura
+  Plomer_a                     @map("Plomería")
+  Tanque_de_aguas              @map("Tanque de aguas")
+  Traslados
+  Ventaner_a                   @map("Ventanería")
+  Otro
+
+  @@schema("guayaba")
+}
+
+enum nivel_programa {
+  Pregrado
+  Posgrado
+
+  @@schema("guayaba")
+}
+
+enum piso_espacio {
+  Primer_piso  @map("Primer piso")
+  Segundo_piso @map("Segundo piso")
+  Tercer_piso  @map("Tercer piso")
+  Cuarto_piso  @map("Cuarto piso")
+  Quinto_piso  @map("Quinto piso")
+  Sexto_piso   @map("Sexto piso")
+  S_ptimo_piso @map("Séptimo piso")
+  Octavo_piso  @map("Octavo piso")
+  Noveno_piso  @map("Noveno piso")
+  D_cimo_piso  @map("Décimo piso")
+  Campus
+  S_tano       @map("Sótano")
+  Terraza
+  Cubierta
+  Z_general    @map("Z general")
+
+  @@schema("guayaba")
+}
+
+enum prioridad_mantenimiento {
+  Alta
+  Media
+  Baja
+  N_A   @map("N/A")
+
+  @@schema("guayaba")
+}
+
+enum propiedad_edificio {
+  Propio
+  Arrendado
+  No_operacional @map("No operacional")
+
+  @@schema("guayaba")
+}
+
+enum rol_persona {
+  admin
+  coordinador
+  mantenimiento
+  usuario
+
+  @@schema("guayaba")
+}
+
+enum tipo_contrato_mantenimiento {
+  Interno
+  Externo
+  Mixto
+  Otro
+
+  @@schema("guayaba")
+}
+
+enum tipo_espacio {
+  Anfiteatro_animales            @map("Anfiteatro animales")
+  Anfiteatro_humanos             @map("Anfiteatro humanos")
+  Auditorio
+  Aula_sal_n                     @map("Aula/salón")
+  Ba_o_hombres                   @map("Baño hombres")
+  Ba_o_mixto                     @map("Baño mixto")
+  Ba_o_mujeres                   @map("Baño mujeres")
+  Ba_o_PMV                       @map("Baño PMV")
+  Biblioteca
+  Bodega
+  Cafeter_a                      @map("Cafetería")
+  Camerino
+  Cancha_de_juegos               @map("Cancha de juegos")
+  Consultorio
+  Laboratorio
+  Laboratorio_simulaci_n         @map("Laboratorio simulación")
+  Local
+  Oficina
+  Otro__describa_en_observaci_n_ @map("Otro (describa en observación)")
+  Sala_de_c_mputo                @map("Sala de cómputo")
+  Sala_de_tutores                @map("Sala de tutores")
+  Sal_n_de_juegos                @map("Salón de juegos")
+  Z_otro                         @map("Z otro")
+
+  @@schema("guayaba")
+}
+
+enum tipo_evento {
+  Clase
+  Reuni_n       @map("Reunión")
+  Mantenimiento
+  Evento
+  Otro
+
+  @@schema("guayaba")
+}
+
+enum tipo_mantenimiento {
+  Preventivo
+  Correctivo
+  Predictivo
+  Otro
+
+  @@schema("guayaba")
+}
+
+enum uso_espacio {
+  Acad_mico                @map("Académico")
+  Acad_mico_administrativo @map("Académico-administrativo")
+  Administrativo
+  rea_com_n                @map("Área común")
+  Bienestar_universitario  @map("Bienestar universitario")
+  Docencia
+  Extensi_n                @map("Extensión")
+  Investigaci_n            @map("Investigación")
+
+  @@schema("guayaba")
+}
